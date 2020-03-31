@@ -1,0 +1,84 @@
+# SHISHUA with 0 / PHI / 0 / PHI state.
+PRNG fingerprint: zheouldzrz
+./shishua --bytes 4294967296 2>&1 >/dev/null | tee -a test/perf-zheouldzrz
+0.114707 cpb
+PRNG fingerprint: zheouldzrz
+./shishua | RNG_test stdin64 | tee test/PractRand-zheouldzrz
+RNG_test using PractRand version 0.95
+RNG = RNG_stdin64, seed = unknown
+test set = core, folding = standard (64 bit)
+
+rng=RNG_stdin64, seed=unknown
+length= 256 megabytes (2^28 bytes), time= 2.5 seconds
+  no anomalies in 213 test result(s)
+
+rng=RNG_stdin64, seed=unknown
+length= 512 megabytes (2^29 bytes), time= 6.2 seconds
+  no anomalies in 229 test result(s)
+
+rng=RNG_stdin64, seed=unknown
+length= 1 gigabyte (2^30 bytes), time= 13.3 seconds
+  no anomalies in 246 test result(s)
+
+rng=RNG_stdin64, seed=unknown
+length= 2 gigabytes (2^31 bytes), time= 25.4 seconds
+  no anomalies in 263 test result(s)
+
+rng=RNG_stdin64, seed=unknown
+length= 4 gigabytes (2^32 bytes), time= 49.9 seconds
+  no anomalies in 279 test result(s)
+
+Wed Mar 25 19:26:41 CET 2020
+rng=RNG_stdin64, seed=unknown
+length= 8 gigabytes (2^33 bytes), time= 107 seconds
+  no anomalies in 295 test result(s)
+
+rng=RNG_stdin64, seed=unknown
+length= 16 gigabytes (2^34 bytes), time= 233 seconds
+  no anomalies in 311 test result(s)
+
+rng=RNG_stdin64, seed=unknown
+length= 32 gigabytes (2^35 bytes), time= 575 seconds
+  no anomalies in 325 test result(s)
+
+rng=RNG_stdin64, seed=unknown
+length= 64 gigabytes (2^36 bytes), time= 1078 seconds
+  no anomalies in 340 test result(s)
+
+rng=RNG_stdin64, seed=unknown
+length= 128 gigabytes (2^37 bytes), time= 2027 seconds
+  no anomalies in 355 test result(s)
+
+rng=RNG_stdin64, seed=unknown
+length= 256 gigabytes (2^38 bytes), time= 3906 seconds
+  no anomalies in 369 test result(s)
+
+rng=RNG_stdin64, seed=unknown
+length= 512 gigabytes (2^39 bytes), time= 8892 seconds
+  no anomalies in 383 test result(s)
+
+rng=RNG_stdin64, seed=unknown
+length= 1 terabyte (2^40 bytes), time= 19682 seconds
+  no anomalies in 397 test result(s)
+
+rng=RNG_stdin64, seed=unknown
+length= 2 terabytes (2^41 bytes), time= 37956 seconds
+  no anomalies in 409 test result(s)
+
+rng=RNG_stdin64, seed=unknown
+length= 4 terabytes (2^42 bytes), time= 78554 seconds
+  no anomalies in 422 test result(s)
+
+rng=RNG_stdin64, seed=unknown
+length= 8 terabytes (2^43 bytes), time= 168189 seconds
+  no anomalies in 434 test result(s)
+
+rng=RNG_stdin64, seed=unknown
+length= 16 terabytes (2^44 bytes), time= 389422 seconds
+  no anomalies in 445 test result(s)
+
+rng=RNG_stdin64, seed=unknown
+length= 32 terabytes (2^45 bytes), time= 649764 seconds
+  no anomalies in 455 test result(s)
+
+
