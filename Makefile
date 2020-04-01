@@ -8,7 +8,8 @@ FINGERPRINT = $(shell ./shishua | ./fingerprint.sh)
 
 shishua: shishua.h prng.c
 	cp shishua.h prng.h
-	gcc -O9 -mavx2 $(CCFLAGS) -o shishua prng.c
+	gcc -O9 -mavx2 $(CCFLAGS) -o $@ prng.c
+	rm prng.h
 
 /usr/local/bin/RNG_test:
 	mkdir PractRand
