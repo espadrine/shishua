@@ -8,9 +8,7 @@ typedef struct prng_state {
 } prng_state;
 
 // buf's size must be a multiple of 32 bytes.
-inline void prng_gen(prng_state *s, BUFTYPE buf[], __uint64_t size) {
-  __uint64_t *b = buf;
-  __uint64_t outputs = size * sizeof(BUFTYPE) / 8;  // 64-bit outputs needed.
+inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
   __m256i s0 = s->state[0], s1 = s->state[1], s2 = s->state[2], counter = s->counter;
   __m256i t1, u1, t2, u2,
      // The following shuffles move weak (low-diffusion) 32-bit parts of 64-bit
@@ -22,7 +20,7 @@ inline void prng_gen(prng_state *s, BUFTYPE buf[], __uint64_t size) {
      shuf1 = _mm256_set_epi32(4, 3, 2, 1, 0, 7, 6, 5),
      shuf2 = _mm256_set_epi32(2, 1, 0, 7, 6, 5, 4, 3),
      increment = _mm256_set_epi64x(1, 3, 5, 7);
-  for (__uint64_t i = 0; i < outputs; i += 4) {
+  for (__uint64_t i = 0; i < size; i += 4) {
     // The counter is not necessary to beat PractRand.
     // It sets a lower bound of 2^71 bytes to the period,
     // or about 7 millenia at 10 GiB/s.
@@ -33,10 +31,10 @@ inline void prng_gen(prng_state *s, BUFTYPE buf[], __uint64_t size) {
     // for a tiny amount of variation stirring.
     // I used the smallest odd numbers to avoid having a magic number.
     //_mm256_store_si256((__m256i*)&b[i], s0);
-    b[i+0] = _mm256_extract_epi64(s0, 0);
-    b[i+1] = _mm256_extract_epi64(s0, 1);
-    b[i+2] = _mm256_extract_epi64(s0, 2);
-    b[i+3] = _mm256_extract_epi64(s0, 3);
+    buf[i+0] = _mm256_extract_epi64(s0, 0);
+    buf[i+1] = _mm256_extract_epi64(s0, 1);
+    buf[i+2] = _mm256_extract_epi64(s0, 2);
+    buf[i+3] = _mm256_extract_epi64(s0, 3);
     if (i % 16 == 0) {
       // I apply the counter to s2,
       // since it is the one whose shift loses most entropy.
@@ -73,16 +71,18 @@ static __uint64_t phi[8] = {
 prng_state prng_init(SEEDTYPE seed[4]) {
   prng_state s;
   s.counter = _mm256_set_epi64x(0, 0, 0, 0);
-  __uint64_t buf[4 * 8];
+# define ROUNDS 8
+  __uint64_t buf[4 * ROUNDS];  // 4 64-bit numbers per 256-bit SIMD.
   // Diffuse first two seed elements in s0, then the lat two. Same for s1.
   // We must keep half of the state unchanged so users cannot set a bad state.
-# define SHISHUA_INIT(A, B) \
+# define INIT(A, B) \
   s.state[1] = _mm256_set_epi64x(phi[3], phi[2] ^ seed[A + 1], phi[1], phi[0] ^ seed[A]); \
   s.state[2] = _mm256_set_epi64x(phi[7], phi[6] ^ seed[B + 1], phi[5], phi[4] ^ seed[B]); \
-  prng_gen(&s, buf, 4 * 8 * 8 / sizeof(BUFTYPE));  // Perform SHISHUA 8 times.
-  SHISHUA_INIT(0, 2);
-  SHISHUA_INIT(2, 0);
-# undef SHISHUA_INIT
+  prng_gen(&s, buf, 4 * ROUNDS);
+  INIT(0, 2);
+  INIT(2, 0);
+# undef INIT
+# undef ROUNDS
   return s;
 }
 #endif

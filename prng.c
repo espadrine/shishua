@@ -3,18 +3,17 @@
 #include <stdlib.h>
 #include <string.h>
 #define BUFSIZE (1<<14)
-#define BUFTYPE __uint64_t
 #define SEEDTYPE __uint64_t
 #include "./prng.h"
 typedef struct args { __int64_t bytes; SEEDTYPE seed[4]; int rval; } args_t;
 args_t parseArgs(int argc, char **argv);
-void prng_gen(prng_state *s, BUFTYPE buf[], __uint64_t size);
+void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size);
 
 int main(int argc, char **argv) {
   args_t a = parseArgs(argc, argv);
   if (a.rval < 0) { return a.rval; }
   prng_state s = prng_init(a.seed);
-  BUFTYPE buf[BUFSIZE];
+  __uint64_t buf[BUFSIZE];
   __int64_t cycles = 0, start;
   for (__int64_t bytes = a.bytes; bytes >= 0; bytes -= sizeof(buf)) {
     int wbytes = bytes < BUFSIZE? bytes: BUFSIZE;
