@@ -13,7 +13,12 @@ shishua: shishua.h prng.c
 
 romu: romu.h prng.c
 	cp romu.h prng.h
-	gcc -O9 -mavx2 -pthread $(CCFLAGS) -o $@ prng.c
+	gcc -O9 $(CCFLAGS) -o $@ prng.c
+	rm prng.h
+
+xoshiro256plusx8: xoshiro256+x8.h prng.c
+	cp xoshiro256+x8.h prng.h
+	gcc -O9 -fdisable-tree-cunrolli -march=native $(CCFLAGS) -o $@ prng.c
 	rm prng.h
 
 /usr/local/bin/RNG_test:
@@ -44,26 +49,26 @@ test: test/perf-$(FINGERPRINT) test/PractRand-$(FINGERPRINT) test/BigCrush-$(FIN
 
 test/PractRand-$(FINGERPRINT): /usr/local/bin/RNG_test shishua
 	@mkdir -p test
+	@echo "Date $$(date)" | tee test/PractRand-$(FINGERPRINT)
 	@echo "PRNG fingerprint: $(FINGERPRINT)" | tee -a test/PractRand-$(FINGERPRINT)
-	@echo "Date $$(date)" | tee -a test/PractRand-$(FINGERPRINT)
 	./shishua | RNG_test stdin64 | tee -a test/PractRand-$(FINGERPRINT)
 
 test/BigCrush-$(FINGERPRINT): /usr/local/bin/testu01 shishua
 	@mkdir -p test
+	@echo "Date $$(date)" | tee test/BigCrush-$(FINGERPRINT)
 	@echo "PRNG fingerprint: $(FINGERPRINT)" | tee -a test/BigCrush-$(FINGERPRINT)
-	@echo "Date $$(date)" | tee -a test/BigCrush-$(FINGERPRINT)
 	./shishua | testu01 --big | tee -a test/BigCrush-$(FINGERPRINT)
 
 # This must be performed with no other processes running.
 test/perf-$(FINGERPRINT): shishua
 	@mkdir -p test
+	@echo "Date $$(date)" | tee test/perf-$(FINGERPRINT)
 	@echo "PRNG fingerprint: $(FINGERPRINT)" | tee -a test/perf-$(FINGERPRINT)
-	@echo "Date $$(date)" | tee -a test/perf-$(FINGERPRINT)
 	./shishua --bytes 4294967296 2>&1 >/dev/null | tee -a test/perf-$(FINGERPRINT)
 
-test/perf: shishua romu
+test/perf: shishua xoshiro256plusx8 romu
 	@mkdir -p test
-	@echo "Date $$(date)" | tee -a test/perf
+	@echo "Date $$(date)" | tee test/perf
 	for prng in $^; do \
 	  echo "$$prng fingerprint: $$(./$$prng | ./fingerprint.sh)" | tee -a test/perf; \
 	  ./$$prng --bytes 4294967296 2>&1 >/dev/null | tee -a test/perf; \

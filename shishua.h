@@ -1,7 +1,6 @@
 #ifndef SHISHUA_H
 #define SHISHUA_H
 #include <immintrin.h>
-#include <x86intrin.h>
 typedef struct prng_state {
   __m256i state[3];
   __m256i counter;

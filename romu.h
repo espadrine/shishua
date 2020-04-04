@@ -1,7 +1,5 @@
-#ifndef SHISHUA_H
-#define SHISHUA_H
-#include <immintrin.h>
-#include <x86intrin.h>
+#ifndef ROMU_H
+#define ROMU_H
 
 typedef struct prng_state {
   __uint64_t state[3];
