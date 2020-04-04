@@ -1,9 +1,11 @@
-Date Sat Apr  4 21:32:54 CEST 2020
+Date Sat Apr  4 21:46:58 CEST 2020
 shishua fingerprint: uigecxkcgw
-0.098919 cpb
+0.099692 cpb
 xoshiro256plusx8 fingerprint: pdplppbajh
-0.195494 cpb
+0.185743 cpb
 xoshiro256plus fingerprint: hkzwcgvqky
-0.236937 cpb
+0.230536 cpb
 romu fingerprint: tcfufmmkwo
-0.256230 cpb
+0.236335 cpb
+lehmer128 fingerprint: evisiyzxxl
+0.292244 cpb

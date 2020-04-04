@@ -26,6 +26,11 @@ romu: romu.h prng.c
 	gcc -O9 $(CCFLAGS) -o $@ prng.c
 	rm prng.h
 
+lehmer128: lehmer128.h prng.c
+	cp lehmer128.h prng.h
+	gcc -O9 $(CCFLAGS) -o $@ prng.c
+	rm prng.h
+
 /usr/local/bin/RNG_test:
 	mkdir PractRand
 	curl -Ls 'https://downloads.sourceforge.net/project/pracrand/PractRand-pre0.95.zip' >PractRand/PractRand.zip
@@ -71,10 +76,10 @@ test/perf-$(FINGERPRINT): shishua
 	@echo "PRNG fingerprint: $(FINGERPRINT)" | tee -a test/perf-$(FINGERPRINT)
 	./shishua --bytes 4294967296 2>&1 >/dev/null | tee -a test/perf-$(FINGERPRINT)
 
-test/perf: shishua xoshiro256plusx8 xoshiro256plus romu
+test/perf: shishua xoshiro256plusx8 xoshiro256plus romu lehmer128
 	@mkdir -p test
 	@echo "Date $$(date)" | tee test/perf
-	for prng in $^; do \
+	@for prng in $^; do \
 	  echo "$$prng fingerprint: $$(./$$prng | ./fingerprint.sh)" | tee -a test/perf; \
 	  ./$$prng --bytes 4294967296 2>&1 >/dev/null | tee -a test/perf; \
 	done
