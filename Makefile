@@ -11,14 +11,19 @@ shishua: shishua.h prng.c
 	gcc -O9 -mavx2 $(CCFLAGS) -o $@ prng.c
 	rm prng.h
 
-romu: romu.h prng.c
-	cp romu.h prng.h
-	gcc -O9 $(CCFLAGS) -o $@ prng.c
-	rm prng.h
-
 xoshiro256plusx8: xoshiro256+x8.h prng.c
 	cp xoshiro256+x8.h prng.h
 	gcc -O9 -fdisable-tree-cunrolli -march=native $(CCFLAGS) -o $@ prng.c
+	rm prng.h
+
+xoshiro256plus: xoshiro256+.h prng.c
+	cp xoshiro256+.h prng.h
+	gcc -O9 $(CCFLAGS) -o $@ prng.c
+	rm prng.h
+
+romu: romu.h prng.c
+	cp romu.h prng.h
+	gcc -O9 $(CCFLAGS) -o $@ prng.c
 	rm prng.h
 
 /usr/local/bin/RNG_test:
@@ -66,7 +71,7 @@ test/perf-$(FINGERPRINT): shishua
 	@echo "PRNG fingerprint: $(FINGERPRINT)" | tee -a test/perf-$(FINGERPRINT)
 	./shishua --bytes 4294967296 2>&1 >/dev/null | tee -a test/perf-$(FINGERPRINT)
 
-test/perf: shishua xoshiro256plusx8 romu
+test/perf: shishua xoshiro256plusx8 xoshiro256plus romu
 	@mkdir -p test
 	@echo "Date $$(date)" | tee test/perf
 	for prng in $^; do \
