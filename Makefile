@@ -76,6 +76,7 @@ test/perf-$(FINGERPRINT): shishua
 	@echo "PRNG fingerprint: $(FINGERPRINT)" | tee -a test/perf-$(FINGERPRINT)
 	./shishua --bytes 4294967296 2>&1 >/dev/null | tee -a test/perf-$(FINGERPRINT)
 
+# Please add this list to .gitignore when modifying this line.
 test/perf: shishua xoshiro256plusx8 xoshiro256plus romu lehmer128
 	@mkdir -p test
 	@echo "Date $$(date)" | tee test/perf
