@@ -11,6 +11,11 @@ shishua: shishua.h prng.c
 	gcc -O9 -mavx2 $(CCFLAGS) -o $@ prng.c
 	rm prng.h
 
+chacha8: chacha8.h prng.c
+	cp chacha8.h prng.h
+	gcc -O9 -mavx2 $(CCFLAGS) -o $@ prng.c
+	rm prng.h
+
 xoshiro256plusx8: xoshiro256+x8.h prng.c
 	cp xoshiro256+x8.h prng.h
 	gcc -O9 -fdisable-tree-cunrolli -march=native $(CCFLAGS) -o $@ prng.c
@@ -77,10 +82,10 @@ test/perf-$(FINGERPRINT): shishua
 	./shishua --bytes 4294967296 2>&1 >/dev/null | tee -a test/perf-$(FINGERPRINT)
 
 # Please add this list to .gitignore when modifying this line.
-test/perf: shishua xoshiro256plusx8 xoshiro256plus romu lehmer128
+test/perf: shishua chacha8 xoshiro256plusx8 xoshiro256plus romu lehmer128
 	@mkdir -p test
 	@echo "Date $$(date)" | tee test/perf
-	@for prng in $^; do \
+	for prng in $^; do \
 	  echo "$$prng fingerprint: $$(./$$prng | ./fingerprint.sh)" | tee -a test/perf; \
 	  ./$$prng --bytes 4294967296 2>&1 >/dev/null | tee -a test/perf; \
 	done
