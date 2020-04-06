@@ -36,6 +36,11 @@ lehmer128: lehmer128.h prng.c
 	gcc -O9 $(CCFLAGS) -o $@ prng.c
 	rm prng.h
 
+rc4: rc4.h prng.c
+	cp rc4.h prng.h
+	gcc -O9 $(CCFLAGS) -o $@ prng.c
+	rm prng.h
+
 /usr/local/bin/RNG_test:
 	mkdir PractRand
 	curl -Ls 'https://downloads.sourceforge.net/project/pracrand/PractRand-pre0.95.zip' >PractRand/PractRand.zip
@@ -82,7 +87,7 @@ test/perf-$(FINGERPRINT): shishua
 	./shishua --bytes 4294967296 2>&1 >/dev/null | tee -a test/perf-$(FINGERPRINT)
 
 # Please add this list to .gitignore when modifying this line.
-test/perf: shishua chacha8 xoshiro256plusx8 xoshiro256plus romu lehmer128
+test/perf: shishua chacha8 xoshiro256plusx8 xoshiro256plus romu lehmer128 rc4
 	@mkdir -p test
 	@echo "Date $$(date)" | tee test/perf
 	for prng in $^; do \
