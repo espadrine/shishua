@@ -31,6 +31,11 @@ romu: romu.h prng.c
 	gcc -O9 $(CCFLAGS) -o $@ prng.c
 	rm prng.h
 
+wyrand: wyrand.h prng.c
+	cp wyrand.h prng.h
+	gcc -O9 $(CCFLAGS) -o $@ prng.c
+	rm prng.h
+
 lehmer128: lehmer128.h prng.c
 	cp lehmer128.h prng.h
 	gcc -O9 $(CCFLAGS) -o $@ prng.c
@@ -87,7 +92,7 @@ test/perf-$(FINGERPRINT): shishua
 	./shishua --bytes 4294967296 2>&1 >/dev/null | tee -a test/perf-$(FINGERPRINT)
 
 # Please add this list to .gitignore when modifying this line.
-test/perf: shishua chacha8 xoshiro256plusx8 xoshiro256plus romu lehmer128 rc4
+test/perf: shishua chacha8 xoshiro256plusx8 xoshiro256plus romu wyrand lehmer128 rc4
 	@mkdir -p test
 	@echo "Date $$(date)" | tee test/perf
 	for prng in $^; do \

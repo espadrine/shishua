@@ -3,4 +3,10 @@
 /xoshiro256plusx8
 /xoshiro256plus
 /romu
+/wyrand
 /lehmer128
+/rc4
+/bin
+/include
+/lib
+/share
