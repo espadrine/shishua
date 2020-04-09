@@ -6,6 +6,7 @@
 /wyrand
 /lehmer128
 /rc4
+/intertwine
 /bin
 /include
 /lib

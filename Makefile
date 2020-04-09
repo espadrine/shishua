@@ -1,10 +1,8 @@
 SHELL = bash
 CCFLAGS =
 FINGERPRINT = $(shell ./shishua | ./fingerprint.sh)
-# We support multiple flags, such as changing the gear size:
-#CCFLAGS = -DCOMBIT_REGSIZE=8
-# …or enabling debugging mode:
-#CCFLAGS = -DCOMBIT_DEBUG=2
+# Please add this list to .gitignore when modifying this line.
+PRNGS = shishua chacha8 xoshiro256plusx8 xoshiro256plus romu wyrand lehmer128 rc4
 
 shishua: shishua.h prng.c
 	cp shishua.h prng.h
@@ -45,6 +43,9 @@ rc4: rc4.h prng.c
 	cp rc4.h prng.h
 	gcc -O9 $(CCFLAGS) -o $@ prng.c
 	rm prng.h
+
+intertwine: intertwine.c
+	gcc -o $@ $<
 
 /usr/local/bin/RNG_test:
 	mkdir PractRand
@@ -91,11 +92,19 @@ test/perf-$(FINGERPRINT): shishua
 	@echo "PRNG fingerprint: $(FINGERPRINT)" | tee -a test/perf-$(FINGERPRINT)
 	./shishua --bytes 4294967296 2>&1 >/dev/null | tee -a test/perf-$(FINGERPRINT)
 
-# Please add this list to .gitignore when modifying this line.
-test/perf: shishua chacha8 xoshiro256plusx8 xoshiro256plus romu wyrand lehmer128 rc4
+test/perf: $(PRNGS)
 	@mkdir -p test
 	@echo "Date $$(date)" | tee test/perf
-	for prng in $^; do \
+	for prng in $(PRNGS); do \
 	  echo "$$prng fingerprint: $$(./$$prng | ./fingerprint.sh)" | tee -a test/perf; \
 	  ./$$prng --bytes 4294967296 2>&1 >/dev/null | tee -a test/perf; \
+	done
+
+# Please add this list to .gitignore when modifying this line.
+test/seed: $(PRNGS) intertwine
+	@mkdir -p test
+	@echo "Date $$(date)" | tee test/seed
+	for prng in $(PRNGS); do \
+	  echo "$$prng fingerprint: $$(./$$prng | ./fingerprint.sh)" | tee -a test/seed; \
+	  ./intertwine <(./$$prng -s 0) <(./$$prng -s 1) | RNG_test stdin -tlmax 1G -te 1 -tf 2 | tee -a test/seed; \
 	done
