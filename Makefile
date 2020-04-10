@@ -2,10 +2,15 @@ SHELL = bash
 CCFLAGS =
 FINGERPRINT = $(shell ./shishua | ./fingerprint.sh)
 # Please add this list to .gitignore when modifying this line.
-PRNGS = shishua chacha8 xoshiro256plusx8 xoshiro256plus romu wyrand lehmer128 rc4
+PRNGS = shishua shishua½ chacha8 xoshiro256plusx8 xoshiro256plus romu wyrand lehmer128 rc4
 
 shishua: shishua.h prng.c
 	cp shishua.h prng.h
+	gcc -O9 -mavx2 $(CCFLAGS) -o $@ prng.c
+	rm prng.h
+
+shishua½: shishua½.h prng.c
+	cp shishua½.h prng.h
 	gcc -O9 -mavx2 $(CCFLAGS) -o $@ prng.c
 	rm prng.h
 
