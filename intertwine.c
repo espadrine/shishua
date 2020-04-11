@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#define BUFSIZE (1)
 #define BUFSIZE (1<<17)
 
 typedef struct args { int rval; int blockSize; int fnum; int *files; } args_t;
@@ -16,33 +15,28 @@ int main(int argc, char **argv) {
   char ibuf[BUFSIZE];
   char *obuf = malloc(outputBufsize * sizeof(char));
   char reachedEOF = 0;
-  //fprintf(stderr, "Start\n");
   while (!reachedEOF) {
     int readBytes = outputBufsize;
     for (char i = 0; i < a.fnum; i++) {
-      //fprintf(stderr, "Read block from file %d (%d)\n", i, a.files[i]);
       ssize_t r = read(a.files[i], ibuf, BUFSIZE);
       for (int bi = 0; bi < r; bi++) {
         obuf[a.fnum * bi + i] = ibuf[bi];
       }
-      //fprintf(stderr, "Read %ld bytes\n", r);
       if (r < BUFSIZE) {
         if (readBytes > a.fnum * r + i) {
           readBytes = a.fnum * r + i;
         }
       }
       if (r == 0) {
-        //fprintf(stderr, "reached eof\n");
         reachedEOF = 1;
       }
     }
     ssize_t w = write(STDOUT_FILENO, obuf, readBytes);
   }
-  //fprintf(stderr, "End\n");
 
   // Discharging allocations.
   for (char i = 0; i < a.fnum; i++) { close(a.files[i]); }
-  free(a.files);
+  free(a.files); free(obuf);
   return 0;
 }
 
@@ -74,12 +68,8 @@ args_t parseArgs(int argc, char **argv) {
   a.fnum = argc - i;
   a.files = malloc(a.fnum * sizeof(int));
   for (int j = i; j < argc; j++) {
-    //fprintf(stderr, "Register file %s\n", argv[j]);
     a.files[j - i] = open(argv[j], O_RDONLY);
-    //fprintf(stderr, "File descriptor %d (%d)\n", j - i, a.files[j - i]);
   }
-  //a.files[0] = 62;
-  //a.files[1] = 63;
 
   return a;
 }

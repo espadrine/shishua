@@ -5,7 +5,7 @@
 // Code from: http://prng.di.unimi.it/xoshiro256plus.c
 // Speed comparison: http://prng.di.unimi.it/#speed
 // where it is presented as the very fastest of the whole benchmark.
-// Note: it fails PractRand BRank at 256 MiB.
+// Note: it fails PractRand BRank at 512 MiB.
 // It mentions that the lowest three bits fail linearity tests,
 // but it claims to be faster that way.
 // I kept it because it lets us compare the SIMD version (which is the fastest).

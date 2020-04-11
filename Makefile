@@ -111,5 +111,9 @@ test/seed: $(PRNGS) intertwine
 	@echo "Date $$(date)" | tee test/seed
 	for prng in $(PRNGS); do \
 	  echo "$$prng fingerprint: $$(./$$prng | ./fingerprint.sh)" | tee -a test/seed; \
-	  ./intertwine <(./$$prng -s 0) <(./$$prng -s 1) | RNG_test stdin -tlmax 1G -te 1 -tf 2 | tee -a test/seed; \
+	  ./intertwine <(./$$prng -s 0) <(./$$prng -s 1) \
+	               <(./$$prng -s 2) <(./$$prng -s 4) \
+	               <(./$$prng -s 8) <(./$$prng -s 10) \
+	               <(./$$prng -s 20) <(./$$prng -s 40) \
+	    | RNG_test stdin -tlmax 1M -tlmin 1K -te 1 -tf 2 | tee -a test/seed; \
 	done

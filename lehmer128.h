@@ -18,9 +18,9 @@ inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
 
 prng_state prng_init(SEEDTYPE seed[4]) {
   prng_state s;
-  s.state = seed[2];
+  s.state = seed[0] ^ seed[2];
   s.state <<= 64;
-  s.state ^= seed[3];
+  s.state ^= seed[1] ^ seed[3];
   if (s.state == 0) { s.state = 1; }
   return s;
 }
