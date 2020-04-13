@@ -9,6 +9,7 @@ typedef struct prng_state {
 
 // buf's size must be a multiple of 128 bytes.
 inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
+  //fprintf(stderr, "Alignment: %ld\n", __alignof__(buf));
   __m256i o0 = s->output[0], o1 = s->output[1], o2 = s->output[2], o3 = s->output[3],
           s0 =  s->state[0], s1 =  s->state[1], s2 =  s->state[2], s3 =  s->state[3],
           t0, t1, t2, t3, u0, u1, u2, u3, counter = s->counter;
@@ -31,23 +32,10 @@ inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
     // I use different odd numbers for each 64-bit chunk
     // for a tiny amount of variation stirring.
     // I used the smallest odd numbers to avoid having a magic number.
-    //_mm256_store_si256((__m256i*)&b[i], o0);
-    buf[i+ 0] = _mm256_extract_epi64(o0, 0);
-    buf[i+ 1] = _mm256_extract_epi64(o0, 1);
-    buf[i+ 2] = _mm256_extract_epi64(o0, 2);
-    buf[i+ 3] = _mm256_extract_epi64(o0, 3);
-    buf[i+ 4] = _mm256_extract_epi64(o1, 0);
-    buf[i+ 5] = _mm256_extract_epi64(o1, 1);
-    buf[i+ 6] = _mm256_extract_epi64(o1, 2);
-    buf[i+ 7] = _mm256_extract_epi64(o1, 3);
-    buf[i+ 8] = _mm256_extract_epi64(o2, 0);
-    buf[i+ 9] = _mm256_extract_epi64(o2, 1);
-    buf[i+10] = _mm256_extract_epi64(o2, 2);
-    buf[i+11] = _mm256_extract_epi64(o2, 3);
-    buf[i+12] = _mm256_extract_epi64(o3, 0);
-    buf[i+13] = _mm256_extract_epi64(o3, 1);
-    buf[i+14] = _mm256_extract_epi64(o3, 2);
-    buf[i+15] = _mm256_extract_epi64(o3, 3);
+    _mm256_store_si256((__m256i*)&buf[i+ 0], o0);
+    _mm256_store_si256((__m256i*)&buf[i+ 4], o1);
+    _mm256_store_si256((__m256i*)&buf[i+ 8], o2);
+    _mm256_store_si256((__m256i*)&buf[i+12], o3);
 
     // I apply the counter to s1,
     // since it is the one whose shift loses most entropy.

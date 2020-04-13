@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
   args_t a = parseArgs(argc, argv);
   if (a.rval < 0) { return a.rval; }
   prng_state s = prng_init(a.seed);
-  __uint64_t buf[BUFSIZE];
+  __uint64_t buf[BUFSIZE] __attribute__ ((aligned (64)));
   __int64_t cycles = 0, start;
   for (__int64_t bytes = a.bytes; bytes >= 0; bytes -= sizeof(buf)) {
     int wbytes = bytes < BUFSIZE? bytes: BUFSIZE;
