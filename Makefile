@@ -102,7 +102,7 @@ test/perf: $(PRNGS)
 	@echo "Date $$(date)" | tee test/perf
 	for prng in $(PRNGS); do \
 	  echo "$$prng fingerprint: $$(./$$prng | ./fingerprint.sh)" | tee -a test/perf; \
-	  ./$$prng --bytes 4294967296 2>&1 >/dev/null | tee -a test/perf; \
+	  ./fix-cpu-freq.sh ./$$prng --bytes 4294967296 2>&1 >/dev/null | tee -a test/perf; \
 	done
 
 # Please add this list to .gitignore when modifying this line.
