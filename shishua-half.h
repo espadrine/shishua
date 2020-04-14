@@ -31,7 +31,7 @@ inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
     // I use different odd numbers for each 64-bit chunk
     // for a tiny amount of variation stirring.
     // I used the smallest odd numbers to avoid having a magic number.
-    _mm256_store_si256((__m256i*)&buf[i], o);
+    _mm256_storeu_si256((__m256i*)&buf[i], o);
 
     // I apply the counter to s1,
     // since it is the one whose shift loses most entropy.

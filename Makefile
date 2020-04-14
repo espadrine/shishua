@@ -2,15 +2,16 @@ SHELL = bash
 CCFLAGS =
 FINGERPRINT = $(shell ./shishua | ./fingerprint.sh)
 # Please add this list to .gitignore when modifying this line.
-PRNGS = shishua shishua½ chacha8 xoshiro256plusx8 xoshiro256plus romu wyrand lehmer128 rc4
+PRNGS = shishua shishua-half chacha8 xoshiro256plusx8 xoshiro256plus romu wyrand lehmer128 rc4
+SSH_KEY = ~/.ssh/id_ed25519
 
 shishua: shishua.h prng.c
 	cp shishua.h prng.h
 	gcc -O9 -mavx2 $(CCFLAGS) -o $@ prng.c
 	rm prng.h
 
-shishua½: shishua½.h prng.c
-	cp shishua½.h prng.h
+shishua-half: shishua-half.h prng.c
+	cp shishua-half.h prng.h
 	gcc -O9 -mavx2 $(CCFLAGS) -o $@ prng.c
 	rm prng.h
 
@@ -52,6 +53,10 @@ rc4: rc4.h prng.c
 intertwine: intertwine.c
 	gcc -o $@ $<
 
+##
+## Quality testing.
+##
+
 /usr/local/bin/RNG_test:
 	mkdir PractRand
 	curl -Ls 'https://downloads.sourceforge.net/project/pracrand/PractRand-pre0.95.zip' >PractRand/PractRand.zip
@@ -90,7 +95,24 @@ test/BigCrush-$(FINGERPRINT): /usr/local/bin/testu01 shishua
 	@echo "PRNG fingerprint: $(FINGERPRINT)" | tee -a test/BigCrush-$(FINGERPRINT)
 	./shishua | testu01 --big | tee -a test/BigCrush-$(FINGERPRINT)
 
+test/seed: $(PRNGS) intertwine
+	@mkdir -p test
+	@echo "Date $$(date)" | tee test/seed
+	for prng in $(PRNGS); do \
+	  echo "$$prng fingerprint: $$(./$$prng | ./fingerprint.sh)" | tee -a test/seed; \
+	  ./intertwine <(./$$prng -s 0) <(./$$prng -s 1) \
+	               <(./$$prng -s 2) <(./$$prng -s 4) \
+	               <(./$$prng -s 8) <(./$$prng -s 10) \
+	               <(./$$prng -s 20) <(./$$prng -s 40) \
+	    | RNG_test stdin -tlmax 1M -tlmin 1K -te 1 -tf 2 | tee -a test/seed; \
+	done
+
+##
+## Performance testing.
+##
+
 # This must be performed with no other processes running.
+
 test/perf-$(FINGERPRINT): shishua
 	@mkdir -p test
 	@echo "Date $$(date)" | tee test/perf-$(FINGERPRINT)
@@ -105,15 +127,38 @@ test/perf: $(PRNGS)
 	  ./fix-cpu-freq.sh ./$$prng --bytes 4294967296 2>&1 >/dev/null | tee -a test/perf; \
 	done
 
-# Please add this list to .gitignore when modifying this line.
-test/seed: $(PRNGS) intertwine
-	@mkdir -p test
-	@echo "Date $$(date)" | tee test/seed
-	for prng in $(PRNGS); do \
-	  echo "$$prng fingerprint: $$(./$$prng | ./fingerprint.sh)" | tee -a test/seed; \
-	  ./intertwine <(./$$prng -s 0) <(./$$prng -s 1) \
-	               <(./$$prng -s 2) <(./$$prng -s 4) \
-	               <(./$$prng -s 8) <(./$$prng -s 10) \
-	               <(./$$prng -s 20) <(./$$prng -s 40) \
-	    | RNG_test stdin -tlmax 1M -tlmin 1K -te 1 -tf 2 | tee -a test/seed; \
-	done
+# To reach a consistent benchmark, we need a universally-reproducible system.
+# GCP will do.
+
+# Installation instructions from https://cloud.google.com/sdk/docs/downloads-apt-get
+/usr/bin/gcloud:
+	echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+	sudo apt-get install apt-transport-https ca-certificates gnupg
+	curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+	sudo apt-get update && sudo apt-get install google-cloud-sdk
+	gcloud init
+
+test/gcp-intel-perf: /usr/bin/gcloud
+	gcloud compute instances create shishua-intel \
+	  --machine-type=n2-standard-2 \
+	  --image-project=ubuntu-os-cloud --image-family=ubuntu-1910 \
+	  --zone=us-central1-f \
+	  --maintenance-policy=TERMINATE
+	tar cJf shishua.tar.xz $$(git ls-files)
+	gcloud compute scp ./shishua.tar.xz shishua-intel:~ --ssh-key-file=$(SSH_KEY)
+	rm shishua.tar.xz
+	gcloud compute ssh shishua-intel --ssh-key-file=$(SSH_KEY) -- 'tar xJf shishua.tar.xz && ./gcp-perf.sh'
+	gcloud compute instances delete shishua-intel
+
+# We must use us-central1 to have access to N2D, with the new AMD CPUs.
+test/gcp-amd-perf: /usr/bin/gcloud
+	gcloud compute instances create shishua-amd \
+	  --machine-type=n2d-standard-2 \
+	  --image-project=ubuntu-os-cloud --image-family=ubuntu-1910 \
+	  --zone=us-central1-f \
+	  --maintenance-policy=TERMINATE
+	tar cJf shishua.tar.xz $$(git ls-files)
+	gcloud compute scp ./shishua.tar.xz shishua-amd:~ --ssh-key-file=$(SSH_KEY)
+	rm shishua.tar.xz
+	gcloud compute ssh shishua-amd --ssh-key-file=$(SSH_KEY) -- 'tar xJf shishua.tar.xz && ./gcp-perf.sh'
+	gcloud compute instances delete shishua-amd

@@ -9,7 +9,6 @@ typedef struct prng_state {
 
 // buf's size must be a multiple of 128 bytes.
 inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
-  //fprintf(stderr, "Alignment: %ld\n", __alignof__(buf));
   __m256i o0 = s->output[0], o1 = s->output[1], o2 = s->output[2], o3 = s->output[3],
           s0 =  s->state[0], s1 =  s->state[1], s2 =  s->state[2], s3 =  s->state[3],
           t0, t1, t2, t3, u0, u1, u2, u3, counter = s->counter;
@@ -32,10 +31,10 @@ inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
     // I use different odd numbers for each 64-bit chunk
     // for a tiny amount of variation stirring.
     // I used the smallest odd numbers to avoid having a magic number.
-    _mm256_store_si256((__m256i*)&buf[i+ 0], o0);
-    _mm256_store_si256((__m256i*)&buf[i+ 4], o1);
-    _mm256_store_si256((__m256i*)&buf[i+ 8], o2);
-    _mm256_store_si256((__m256i*)&buf[i+12], o3);
+    _mm256_storeu_si256((__m256i*)&buf[i+ 0], o0);
+    _mm256_storeu_si256((__m256i*)&buf[i+ 4], o1);
+    _mm256_storeu_si256((__m256i*)&buf[i+ 8], o2);
+    _mm256_storeu_si256((__m256i*)&buf[i+12], o3);
 
     // I apply the counter to s1,
     // since it is the one whose shift loses most entropy.
