@@ -15,7 +15,7 @@
 </table>
 
 1. **Performance**: in number of CPU cycles spent per byte generated,
-   on N2 GCP instances.
+   on N2 GCP instances. On N2D (AMD), the order is the same.
 2. **Quality**: level at which it fails PractRand. We show a `>` if it did not fail.
    We put a question mark if we have not proved it.
 3. **Seed correlation**: PractRand on interleaving of bytes from eight streams
@@ -27,3 +27,12 @@ highlights additional anomalies:
 
 - RC4 has weak seeds with heavy artefacts visible in the fingerprints.
 - RomuTrio's fingerprints start with the same first character for all seeds.
+
+## Commands
+
+- `make`: build `./shishua`.
+- `make test`: run performance tests, PractRand, and BigCrush on SHISHUA.
+- `make test/benchmark-seed`: run seed correlation test.
+- `make test/benchmark-perf`: run performance comparison locally.
+- `make benchmark-intel`: run performance comparison on a GCP Intel chip.
+- `make benchmark-amd`: run performance comparison on a GCP AMD chip.

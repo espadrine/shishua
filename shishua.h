@@ -19,18 +19,18 @@ inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
   // positions ringwise: A to B, B to C, …, H to A.
   // You may notice that they are simply 256-bit rotations (96 and 160).
   __m256i shu0 = _mm256_set_epi32(4, 3, 2, 1, 0, 7, 6, 5),
-          shu1 = _mm256_set_epi32(2, 1, 0, 7, 6, 5, 4, 3),
-          increment = _mm256_set_epi64x(1, 3, 5, 7);
+          shu1 = _mm256_set_epi32(2, 1, 0, 7, 6, 5, 4, 3);
+  // The counter is not necessary to beat PractRand.
+  // It sets a lower bound of 2^71 bytes = 2 ZiB to the period,
+  // or about 7 millenia at 10 GiB/s.
+  // The increments are picked as odd numbers,
+  // since only coprimes of the base cover the full cycle,
+  // and all odd numbers are coprime of 2.
+  // I use different odd numbers for each 64-bit chunk
+  // for a tiny amount of variation stirring.
+  // I used the smallest odd numbers to avoid having a magic number.
+  __m256i increment = _mm256_set_epi64x(1, 3, 5, 7);
   for (__uint64_t i = 0; i < size; i += 16) {
-    // The counter is not necessary to beat PractRand.
-    // It sets a lower bound of 2^71 bytes to the period,
-    // or about 7 millenia at 10 GiB/s.
-    // The increments are picked as odd numbers,
-    // since only coprimes of the base cover the full cycle,
-    // and all odd numbers are coprime of 2.
-    // I use different odd numbers for each 64-bit chunk
-    // for a tiny amount of variation stirring.
-    // I used the smallest odd numbers to avoid having a magic number.
     _mm256_storeu_si256((__m256i*)&buf[i+ 0], o0);
     _mm256_storeu_si256((__m256i*)&buf[i+ 4], o1);
     _mm256_storeu_si256((__m256i*)&buf[i+ 8], o2);

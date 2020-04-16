@@ -6,47 +6,47 @@ PRNGS = shishua shishua-half chacha8 xoshiro256plusx8 xoshiro256plus romu wyrand
 SSH_KEY = ~/.ssh/id_ed25519
 
 shishua: shishua.h prng.c
-	cp shishua.h prng.h
+	cp $< prng.h
 	gcc -O9 -mavx2 $(CCFLAGS) -o $@ prng.c
 	rm prng.h
 
 shishua-half: shishua-half.h prng.c
-	cp shishua-half.h prng.h
+	cp $< prng.h
 	gcc -O9 -mavx2 $(CCFLAGS) -o $@ prng.c
 	rm prng.h
 
 chacha8: chacha8.h prng.c
-	cp chacha8.h prng.h
+	cp $< prng.h
 	gcc -O9 -mavx2 $(CCFLAGS) -o $@ prng.c
 	rm prng.h
 
 xoshiro256plusx8: xoshiro256+x8.h prng.c
-	cp xoshiro256+x8.h prng.h
+	cp $< prng.h
 	gcc -O9 -fdisable-tree-cunrolli -march=native $(CCFLAGS) -o $@ prng.c
 	rm prng.h
 
 xoshiro256plus: xoshiro256+.h prng.c
-	cp xoshiro256+.h prng.h
+	cp $< prng.h
 	gcc -O9 $(CCFLAGS) -o $@ prng.c
 	rm prng.h
 
 romu: romu.h prng.c
-	cp romu.h prng.h
+	cp $< prng.h
 	gcc -O9 $(CCFLAGS) -o $@ prng.c
 	rm prng.h
 
 wyrand: wyrand.h prng.c
-	cp wyrand.h prng.h
+	cp $< prng.h
 	gcc -O9 $(CCFLAGS) -o $@ prng.c
 	rm prng.h
 
 lehmer128: lehmer128.h prng.c
-	cp lehmer128.h prng.h
+	cp $< prng.h
 	gcc -O9 $(CCFLAGS) -o $@ prng.c
 	rm prng.h
 
 rc4: rc4.h prng.c
-	cp rc4.h prng.h
+	cp $< prng.h
 	gcc -O9 $(CCFLAGS) -o $@ prng.c
 	rm prng.h
 
@@ -95,16 +95,16 @@ test/BigCrush-$(FINGERPRINT): /usr/local/bin/testu01 shishua
 	@echo "PRNG fingerprint: $(FINGERPRINT)" | tee -a test/BigCrush-$(FINGERPRINT)
 	./shishua | testu01 --big | tee -a test/BigCrush-$(FINGERPRINT)
 
-test/seed: $(PRNGS) intertwine
+test/benchmark-seed: $(PRNGS) intertwine
 	@mkdir -p test
-	@echo "Date $$(date)" | tee test/seed
+	@echo "Date $$(date)" | tee $@
 	for prng in $(PRNGS); do \
-	  echo "$$prng fingerprint: $$(./$$prng | ./fingerprint.sh)" | tee -a test/seed; \
+	  echo "$$prng fingerprint: $$(./$$prng | ./fingerprint.sh)" | tee -a $@; \
 	  ./intertwine <(./$$prng -s 0) <(./$$prng -s 1) \
 	               <(./$$prng -s 2) <(./$$prng -s 4) \
 	               <(./$$prng -s 8) <(./$$prng -s 10) \
 	               <(./$$prng -s 20) <(./$$prng -s 40) \
-	    | RNG_test stdin -tlmax 1M -tlmin 1K -te 1 -tf 2 | tee -a test/seed; \
+	    | RNG_test stdin -tlmax 1M -tlmin 1K -te 1 -tf 2 | tee -a $@; \
 	done
 
 ##
@@ -115,16 +115,16 @@ test/seed: $(PRNGS) intertwine
 
 test/perf-$(FINGERPRINT): shishua
 	@mkdir -p test
-	@echo "Date $$(date)" | tee test/perf-$(FINGERPRINT)
-	@echo "PRNG fingerprint: $(FINGERPRINT)" | tee -a test/perf-$(FINGERPRINT)
-	./shishua --bytes 4294967296 2>&1 >/dev/null | tee -a test/perf-$(FINGERPRINT)
+	@echo "Date $$(date)" | tee $@
+	@echo "PRNG fingerprint: $(FINGERPRINT)" | tee -a $@
+	./shishua --bytes 4294967296 2>&1 >/dev/null | tee -a $@
 
-test/perf: $(PRNGS)
+test/benchmark-perf: $(PRNGS)
 	@mkdir -p test
-	@echo "Date $$(date)" | tee test/perf
+	@echo "Date $$(date)" | tee $@
 	for prng in $(PRNGS); do \
-	  echo "$$prng fingerprint: $$(./$$prng | ./fingerprint.sh)" | tee -a test/perf; \
-	  ./fix-cpu-freq.sh ./$$prng --bytes 4294967296 2>&1 >/dev/null | tee -a test/perf; \
+	  echo "$$prng fingerprint: $$(./$$prng | ./fingerprint.sh)" | tee -a $@; \
+	  ./fix-cpu-freq.sh ./$$prng --bytes 4294967296 2>&1 >/dev/null | tee -a $@; \
 	done
 
 # To reach a consistent benchmark, we need a universally-reproducible system.
@@ -138,7 +138,7 @@ test/perf: $(PRNGS)
 	sudo apt-get update && sudo apt-get install google-cloud-sdk
 	gcloud init
 
-test/gcp-intel-perf: /usr/bin/gcloud
+benchmark-intel: /usr/bin/gcloud
 	gcloud compute instances create shishua-intel \
 	  --machine-type=n2-standard-2 \
 	  --image-project=ubuntu-os-cloud --image-family=ubuntu-1910 \
@@ -151,7 +151,7 @@ test/gcp-intel-perf: /usr/bin/gcloud
 	gcloud compute instances delete shishua-intel
 
 # We must use us-central1 to have access to N2D, with the new AMD CPUs.
-test/gcp-amd-perf: /usr/bin/gcloud
+benchmark-amd: /usr/bin/gcloud
 	gcloud compute instances create shishua-amd \
 	  --machine-type=n2d-standard-2 \
 	  --image-project=ubuntu-os-cloud --image-family=ubuntu-1910 \
@@ -162,3 +162,5 @@ test/gcp-amd-perf: /usr/bin/gcloud
 	rm shishua.tar.xz
 	gcloud compute ssh shishua-amd --ssh-key-file=$(SSH_KEY) -- 'tar xJf shishua.tar.xz && ./gcp-perf.sh'
 	gcloud compute instances delete shishua-amd
+
+.PHONY: test benchmark-intel benchmark-amd
