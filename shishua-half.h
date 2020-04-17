@@ -9,9 +9,9 @@ typedef struct prng_state {
 
 // buf's size must be a multiple of 32 bytes.
 inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
-  __m256i o  = s->output,
-          s0 =  s->state[0], s1 =  s->state[1], s2 =  s->state[2], s3 =  s->state[3],
-          t0, t1, t2, t3, u0, u1, u2, u3, counter = s->counter;
+  __m256i s0 = s->state[0], counter = s->counter,
+          s1 = s->state[1],       o = s->output,
+          t0, t1, t2, t3, u0, u1, u2, u3;
   // The following shuffles move weak (low-diffusion) 32-bit parts of 64-bit
   // additions to strong positions for enrichment. The low 32-bit part of a
   // 64-bit chunk never moves to the same 64-bit chunk as its high part.
@@ -39,7 +39,7 @@ inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
     counter = _mm256_add_epi64(counter, increment);
 
     // SIMD does not support rotations. Shift is the next best thing to entangle
-    // bits with other 32-bit positions. We must shift by an odd number so that
+    // bits with other 64-bit positions. We must shift by an odd number so that
     // each bit reaches all 64-bit positions, not just half. We must lose bits
     // of information, so we minimize it: 1 and 3. We use different shift values
     // to increase divergence between the two sides. We use rightward shift
@@ -52,11 +52,10 @@ inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
     s0 = _mm256_add_epi64(t0, u0);              s1 = _mm256_add_epi64(t1, u1);
 
     // Two orthogonally grown pieces evolving independently, XORed.
-    o = _mm256_xor_si256(s0, s1);
+    o = _mm256_xor_si256(u0, t1);
   }
-  s->output = o;
-  s->state[0] = s0; s->state[1] = s1;
-  s->counter = counter;
+  s->state[0] = s0; s->counter = counter;
+  s->state[1] = s1; s->output  = o;
 }
 
 // Nothing up my sleeve: those are the hex digits of Φ,

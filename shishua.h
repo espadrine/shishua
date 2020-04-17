@@ -43,7 +43,7 @@ inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
     counter = _mm256_add_epi64(counter, increment);
 
     // SIMD does not support rotations. Shift is the next best thing to entangle
-    // bits with other 32-bit positions. We must shift by an odd number so that
+    // bits with other 64-bit positions. We must shift by an odd number so that
     // each bit reaches all 64-bit positions, not just half. We must lose bits
     // of information, so we minimize it: 1 and 3. We use different shift values
     // to increase divergence between the two sides. We use rightward shift
