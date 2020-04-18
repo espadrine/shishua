@@ -2,6 +2,9 @@
 
 The [announcement and explanation blog post is here][blog post].
 
+_Note: please do not use this for cryptographic purposes._
+_If you need security, a recommended option is ChaCha20._
+
 [blog post]: https://espadrine.github.io/blog/posts/shishua-the-fastest-prng-in-the-world.html
 
 ## Comparison
