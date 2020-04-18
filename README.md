@@ -1,5 +1,9 @@
 # SHISHUA – The Fastest PRNG In The World
 
+The [announcement and explanation blog post is here][blog post].
+
+[blog post]: https://espadrine.github.io/blog/posts/shishua-the-fastest-prng-in-the-world.html
+
 ## Comparison
 
 <table>
