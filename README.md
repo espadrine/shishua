@@ -7,6 +7,11 @@ _If you need security, a recommended option is ChaCha20._
 
 [blog post]: https://espadrine.github.io/blog/posts/shishua-the-fastest-prng-in-the-world.html
 
+Implementations:
+
+- [C](./shishua.h)
+- [Rust](https://github.com/dbartussek/shishua_rs/)
+
 ## Comparison
 
 <table>
