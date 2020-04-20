@@ -1,7 +1,7 @@
 #ifndef WYRAND_H
 #define WYRAND_H
 
-// wyrand v6: https://github.com/wangyi-fudan/wyhash/blob/master/wyhash_v6.h
+// wyrand: https://github.com/wangyi-fudan/wyhash/blob/master/wyhash.h
 // A (hash-table) hash derivative.
 
 typedef struct prng_state {
@@ -13,8 +13,8 @@ typedef struct prng_state {
 // buf's size must be a multiple of 8 bytes.
 inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
   for (__uint64_t i = 0; i < size; i++) {
-    s->counter += 0xb10f1ea5b4358d87ull;
-    __uint128_t r = (__uint128_t)(s->counter ^ 0x2e63952eb46a7127ull) * s->counter;
+    s->counter += 0xa0761d6478bd642full;
+    __uint128_t r = (__uint128_t)(s->counter ^ 0xe7037ed1a0b428dbull) * s->counter;
     buf[i] = r ^ r >> 64;
   }
 }
