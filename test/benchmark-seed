@@ -1,63 +1,110 @@
-Date Mon Apr 20 01:43:41 CEST 2020
+Date Wed Apr 22 08:39:58 CEST 2020
 shishua fingerprint: hkntbokqbm
 RNG_test using PractRand version 0.95
 RNG = RNG_stdin, seed = unknown
 test set = expanded, folding = extra
 
 rng=RNG_stdin, seed=unknown
-length= 1 kilobyte (2^10 bytes), time= 0.7 seconds
+length= 1 kilobyte (2^10 bytes), time= 0.5 seconds
   no anomalies in 16 test result(s)
 
 rng=RNG_stdin, seed=unknown
-length= 2 kilobytes (2^11 bytes), time= 1.5 seconds
+length= 2 kilobytes (2^11 bytes), time= 1.0 seconds
   no anomalies in 30 test result(s)
 
 rng=RNG_stdin, seed=unknown
-length= 4 kilobytes (2^12 bytes), time= 3.0 seconds
+length= 4 kilobytes (2^12 bytes), time= 2.2 seconds
   no anomalies in 70 test result(s)
 
 rng=RNG_stdin, seed=unknown
-length= 8 kilobytes (2^13 bytes), time= 5.7 seconds
+length= 8 kilobytes (2^13 bytes), time= 4.5 seconds
   no anomalies in 153 test result(s)
 
 rng=RNG_stdin, seed=unknown
-length= 16 kilobytes (2^14 bytes), time= 11.2 seconds
+length= 16 kilobytes (2^14 bytes), time= 8.9 seconds
   no anomalies in 248 test result(s)
 
 rng=RNG_stdin, seed=unknown
-length= 32 kilobytes (2^15 bytes), time= 20.5 seconds
+length= 32 kilobytes (2^15 bytes), time= 16.4 seconds
   no anomalies in 338 test result(s)
 
 rng=RNG_stdin, seed=unknown
-length= 64 kilobytes (2^16 bytes), time= 33.0 seconds
+length= 64 kilobytes (2^16 bytes), time= 26.8 seconds
   no anomalies in 425 test result(s)
 
 rng=RNG_stdin, seed=unknown
-length= 128 kilobytes (2^17 bytes), time= 47.9 seconds
+length= 128 kilobytes (2^17 bytes), time= 39.2 seconds
   no anomalies in 499 test result(s)
 
 rng=RNG_stdin, seed=unknown
-length= 256 kilobytes (2^18 bytes), time= 64.0 seconds
+length= 256 kilobytes (2^18 bytes), time= 53.0 seconds
   no anomalies in 576 test result(s)
 
 rng=RNG_stdin, seed=unknown
-length= 512 kilobytes (2^19 bytes), time= 80.5 seconds
+length= 512 kilobytes (2^19 bytes), time= 68.3 seconds
   no anomalies in 655 test result(s)
 
 rng=RNG_stdin, seed=unknown
-length= 1 megabyte (2^20 bytes), time= 96.5 seconds
+length= 1 megabyte (2^20 bytes), time= 82.3 seconds
   no anomalies in 733 test result(s)
 
-shishua-half fingerprint: omunlzbohe
+shishua-half fingerprint: crmvuipmhy
 RNG_test using PractRand version 0.95
 RNG = RNG_stdin, seed = unknown
 test set = expanded, folding = extra
 
 rng=RNG_stdin, seed=unknown
-length= 1 kilobyte (2^10 bytes), time= 0.7 seconds
-  Test Name                         Raw       Processed     Evaluation
-  FPF-14+6/64:all                   R= +28.8  p~=   2e-10    VERY SUSPICIOUS 
-  ...and 15 test result(s) without anomalies
+length= 1 kilobyte (2^10 bytes), time= 0.6 seconds
+  no anomalies in 16 test result(s)
+
+rng=RNG_stdin, seed=unknown
+length= 2 kilobytes (2^11 bytes), time= 1.3 seconds
+  no anomalies in 30 test result(s)
+
+rng=RNG_stdin, seed=unknown
+length= 4 kilobytes (2^12 bytes), time= 2.7 seconds
+  no anomalies in 70 test result(s)
+
+rng=RNG_stdin, seed=unknown
+length= 8 kilobytes (2^13 bytes), time= 5.5 seconds
+  no anomalies in 153 test result(s)
+
+rng=RNG_stdin, seed=unknown
+length= 16 kilobytes (2^14 bytes), time= 11.0 seconds
+  no anomalies in 248 test result(s)
+
+rng=RNG_stdin, seed=unknown
+length= 32 kilobytes (2^15 bytes), time= 19.9 seconds
+  no anomalies in 338 test result(s)
+
+rng=RNG_stdin, seed=unknown
+length= 64 kilobytes (2^16 bytes), time= 32.7 seconds
+  no anomalies in 425 test result(s)
+
+rng=RNG_stdin, seed=unknown
+length= 128 kilobytes (2^17 bytes), time= 46.9 seconds
+  no anomalies in 499 test result(s)
+
+rng=RNG_stdin, seed=unknown
+length= 256 kilobytes (2^18 bytes), time= 61.7 seconds
+  no anomalies in 576 test result(s)
+
+rng=RNG_stdin, seed=unknown
+length= 512 kilobytes (2^19 bytes), time= 77.0 seconds
+  no anomalies in 655 test result(s)
+
+rng=RNG_stdin, seed=unknown
+length= 1 megabyte (2^20 bytes), time= 92.5 seconds
+  no anomalies in 733 test result(s)
+
+chacha8 fingerprint: qrogmlfkoe
+RNG_test using PractRand version 0.95
+RNG = RNG_stdin, seed = unknown
+test set = expanded, folding = extra
+
+rng=RNG_stdin, seed=unknown
+length= 1 kilobyte (2^10 bytes), time= 0.6 seconds
+  no anomalies in 16 test result(s)
 
 rng=RNG_stdin, seed=unknown
 length= 2 kilobytes (2^11 bytes), time= 1.4 seconds
@@ -68,78 +115,27 @@ length= 4 kilobytes (2^12 bytes), time= 2.9 seconds
   no anomalies in 70 test result(s)
 
 rng=RNG_stdin, seed=unknown
-length= 8 kilobytes (2^13 bytes), time= 5.5 seconds
+length= 8 kilobytes (2^13 bytes), time= 5.6 seconds
   no anomalies in 153 test result(s)
 
 rng=RNG_stdin, seed=unknown
-length= 16 kilobytes (2^14 bytes), time= 11.1 seconds
+length= 16 kilobytes (2^14 bytes), time= 11.2 seconds
   no anomalies in 248 test result(s)
 
 rng=RNG_stdin, seed=unknown
 length= 32 kilobytes (2^15 bytes), time= 20.9 seconds
-  Test Name                         Raw       Processed     Evaluation
-  [Low1/32]FPF-14+6/64:all          R= -20.1  p~= 1-6e-6    mildly suspicious
-  ...and 337 test result(s) without anomalies
-
-rng=RNG_stdin, seed=unknown
-length= 64 kilobytes (2^16 bytes), time= 34.1 seconds
-  no anomalies in 425 test result(s)
-
-rng=RNG_stdin, seed=unknown
-length= 128 kilobytes (2^17 bytes), time= 48.7 seconds
-  no anomalies in 499 test result(s)
-
-rng=RNG_stdin, seed=unknown
-length= 256 kilobytes (2^18 bytes), time= 65.1 seconds
-  no anomalies in 576 test result(s)
-
-rng=RNG_stdin, seed=unknown
-length= 512 kilobytes (2^19 bytes), time= 81.1 seconds
-  no anomalies in 655 test result(s)
-
-rng=RNG_stdin, seed=unknown
-length= 1 megabyte (2^20 bytes), time= 97.1 seconds
-  no anomalies in 733 test result(s)
-
-chacha8 fingerprint: qrogmlfkoe
-RNG_test using PractRand version 0.95
-RNG = RNG_stdin, seed = unknown
-test set = expanded, folding = extra
-
-rng=RNG_stdin, seed=unknown
-length= 1 kilobyte (2^10 bytes), time= 0.8 seconds
-  no anomalies in 16 test result(s)
-
-rng=RNG_stdin, seed=unknown
-length= 2 kilobytes (2^11 bytes), time= 1.8 seconds
-  no anomalies in 30 test result(s)
-
-rng=RNG_stdin, seed=unknown
-length= 4 kilobytes (2^12 bytes), time= 4.2 seconds
-  no anomalies in 70 test result(s)
-
-rng=RNG_stdin, seed=unknown
-length= 8 kilobytes (2^13 bytes), time= 7.3 seconds
-  no anomalies in 153 test result(s)
-
-rng=RNG_stdin, seed=unknown
-length= 16 kilobytes (2^14 bytes), time= 13.2 seconds
-  no anomalies in 248 test result(s)
-
-rng=RNG_stdin, seed=unknown
-length= 32 kilobytes (2^15 bytes), time= 23.1 seconds
   no anomalies in 338 test result(s)
 
 rng=RNG_stdin, seed=unknown
-length= 64 kilobytes (2^16 bytes), time= 38.4 seconds
+length= 64 kilobytes (2^16 bytes), time= 33.6 seconds
   no anomalies in 425 test result(s)
 
 rng=RNG_stdin, seed=unknown
-length= 128 kilobytes (2^17 bytes), time= 55.3 seconds
+length= 128 kilobytes (2^17 bytes), time= 48.4 seconds
   no anomalies in 499 test result(s)
 
 rng=RNG_stdin, seed=unknown
-length= 256 kilobytes (2^18 bytes), time= 75.0 seconds
+length= 256 kilobytes (2^18 bytes), time= 64.4 seconds
   no anomalies in 576 test result(s)
 
 xoshiro256plusx8 fingerprint: pdplppbajh
@@ -153,7 +149,7 @@ RNG = RNG_stdin, seed = unknown
 test set = expanded, folding = extra
 
 rng=RNG_stdin, seed=unknown
-length= 1 kilobyte (2^10 bytes), time= 0.9 seconds
+length= 1 kilobyte (2^10 bytes), time= 0.6 seconds
   Test Name                         Raw       Processed     Evaluation
   BCFN(0+0,13-9,T)                  R= +1521  p =  2.7e-355   FAIL !!!!!!!   
   mod3n(0):(0,9-6)                  R=+219.7  p =  3.1e-74    FAIL !!!!      
@@ -179,7 +175,7 @@ RNG = RNG_stdin, seed = unknown
 test set = expanded, folding = extra
 
 rng=RNG_stdin, seed=unknown
-length= 1 kilobyte (2^10 bytes), time= 0.8 seconds
+length= 1 kilobyte (2^10 bytes), time= 0.6 seconds
   Test Name                         Raw       Processed     Evaluation
   BCFN(0+0,13-9,T)                  R=+105.1  p =  1.7e-25    FAIL !!        
   mod3n(0):(0,9-6)                  R= +78.1  p =  6.2e-27    FAIL !!        
@@ -199,32 +195,32 @@ RNG = RNG_stdin, seed = unknown
 test set = expanded, folding = extra
 
 rng=RNG_stdin, seed=unknown
-length= 1 kilobyte (2^10 bytes), time= 0.9 seconds
+length= 1 kilobyte (2^10 bytes), time= 0.6 seconds
   Test Name                         Raw       Processed     Evaluation
   FPF-14+6/64:all                   R= -16.6  p~= 1-1e-4    mildly suspicious
   ...and 15 test result(s) without anomalies
 
 rng=RNG_stdin, seed=unknown
-length= 2 kilobytes (2^11 bytes), time= 1.8 seconds
+length= 2 kilobytes (2^11 bytes), time= 1.3 seconds
   no anomalies in 30 test result(s)
 
 rng=RNG_stdin, seed=unknown
-length= 4 kilobytes (2^12 bytes), time= 3.8 seconds
+length= 4 kilobytes (2^12 bytes), time= 2.8 seconds
   no anomalies in 70 test result(s)
 
 rng=RNG_stdin, seed=unknown
-length= 8 kilobytes (2^13 bytes), time= 7.4 seconds
+length= 8 kilobytes (2^13 bytes), time= 5.6 seconds
   no anomalies in 153 test result(s)
 
 rng=RNG_stdin, seed=unknown
-length= 16 kilobytes (2^14 bytes), time= 14.1 seconds
+length= 16 kilobytes (2^14 bytes), time= 11.0 seconds
   Test Name                         Raw       Processed     Evaluation
   [Low1/8]FPF-14+6/16:(1,14-11)     R= +15.9  p =  9.5e-8   unusual          
   [Low1/8]FPF-14+6/16:all           R= +19.1  p~=   1e-5    unusual          
   ...and 246 test result(s) without anomalies
 
 rng=RNG_stdin, seed=unknown
-length= 32 kilobytes (2^15 bytes), time= 26.6 seconds
+length= 32 kilobytes (2^15 bytes), time= 19.9 seconds
   Test Name                         Raw       Processed     Evaluation
   [Low1/8]FPF-14+6/64:all           R= +19.9  p~=   7e-6    mildly suspicious
   [Low1/8]FPF-14+6/32:(1,14-11)     R= +50.2  p =  1.0e-22    FAIL !         
@@ -244,7 +240,7 @@ RNG = RNG_stdin, seed = unknown
 test set = expanded, folding = extra
 
 rng=RNG_stdin, seed=unknown
-length= 1 kilobyte (2^10 bytes), time= 1.0 seconds
+length= 1 kilobyte (2^10 bytes), time= 0.7 seconds
   Test Name                         Raw       Processed     Evaluation
   BCFN(0+0,13-9,T)                  R=+364.3  p =  7.8e-86    FAIL !!!!      
   mod3n(0):(0,9-6)                  R= +49.0  p =  3.4e-17    FAIL !         
@@ -262,7 +258,7 @@ RNG = RNG_stdin, seed = unknown
 test set = expanded, folding = extra
 
 rng=RNG_stdin, seed=unknown
-length= 1 kilobyte (2^10 bytes), time= 0.9 seconds
+length= 1 kilobyte (2^10 bytes), time= 0.6 seconds
   Test Name                         Raw       Processed     Evaluation
   BCFN(0+0,13-9,T)                  R=+213.9  p =  7.9e-51    FAIL !!!!      
   mod3n(0):(0,9-6)                  R=+187.8  p =  1.4e-63    FAIL !!!!      

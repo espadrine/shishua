@@ -69,8 +69,8 @@ static __uint64_t phi[8] = {
 prng_state prng_init(SEEDTYPE seed[4]) {
   prng_state s;
   s.counter = _mm256_set_epi64x(0, 0, 0, 0);
-# define STEPS 2
-# define ROUNDS 10
+# define STEPS 5
+# define ROUNDS 4
   __uint64_t buf[4 * STEPS];  // 4 64-bit numbers per 256-bit SIMD.
   // Diffuse first two seed elements in s0, then the last two. Same for s1.
   // We must keep half of the state unchanged so users cannot set a bad state.
