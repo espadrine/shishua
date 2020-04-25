@@ -40,10 +40,12 @@ static inline uint64_t prng_mult128_xorfold(uint64_t lhs, uint64_t rhs) {
 }
 #endif
 // buf's size must be a multiple of 8 bytes.
-static inline void prng_gen(prng_state *s, uint64_t buf[], size_t size) {
-  for (size_t i = 0; i < size; i++) {
+static inline void prng_gen(prng_state *s, uint8_t buf[], size_t size) {
+  size_t n = size / 8;
+  uint64_t *b = (uint64_t *)buf;
+  for (size_t i = 0; i < n; i++) {
     s->counter += 0xa0761d6478bd642full;
-    buf[i] = prng_mult128_xorfold(s->counter ^ 0xe7037ed1a0b428dbull, s->counter);
+    b[i] = prng_mult128_xorfold(s->counter ^ 0xe7037ed1a0b428dbull, s->counter);
   }
 }
 

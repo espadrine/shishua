@@ -9,14 +9,16 @@ typedef struct prng_state {
 #define ROTL(a,n) (((a) << (n)) | ((a) >> (64 - (n))))
 
 // buf's size must be a multiple of 8 bytes.
-static inline void prng_gen(prng_state *s, uint64_t buf[], size_t size) {
-  for (size_t i = 0; i < size; i++) {
+static inline void prng_gen(prng_state *s, uint8_t buf[], size_t size) {
+  size_t n = size / 8;
+  uint64_t *b = (uint64_t *)buf;
+  for (size_t i = 0; i < n; i++) {
     // ROMU: http://www.romu-random.org/romupaper.pdf
     uint64_t xp = s->state[0], yp = s->state[1], zp = s->state[2];
     s->state[0] = 15241094284759029579u * zp;
     s->state[1] = ROTL(yp - xp, 12);
     s->state[2] = ROTL(zp - yp, 44);
-    buf[i] = xp;
+    b[i] = xp;
   }
 }
 

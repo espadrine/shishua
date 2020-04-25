@@ -11,7 +11,7 @@ typedef struct prng_state {
 } prng_state;
 
 // buf's size must be a multiple of 32 bytes.
-static inline void prng_gen(prng_state *s, uint64_t buf[], size_t size) {
+static inline void prng_gen(prng_state *s, uint8_t buf[], size_t size) {
   __m256i s0 = s->state[0], counter = s->counter,
           s1 = s->state[1],       o = s->output,
           t0, t1, t2, t3, u0, u1, u2, u3;
@@ -33,7 +33,7 @@ static inline void prng_gen(prng_state *s, uint64_t buf[], size_t size) {
   // for a tiny amount of variation stirring.
   // I used the smallest odd numbers to avoid having a magic number.
   __m256i increment = _mm256_set_epi64x(1, 3, 5, 7);
-  for (size_t i = 0; i < size; i += 4) {
+  for (size_t i = 0; i < size; i += 32) {
     _mm256_storeu_si256((__m256i*)&buf[i], o);
 
     // I apply the counter to s1,
@@ -74,13 +74,13 @@ prng_state prng_init(SEEDTYPE seed[4]) {
   memset(&s, 0, sizeof(prng_state));
 # define STEPS 5
 # define ROUNDS 4
-  uint64_t buf[4 * STEPS];  // 4 64-bit numbers per 256-bit SIMD.
+  uint8_t buf[32 * STEPS];  // 4 64-bit numbers per 256-bit SIMD.
   // Diffuse first two seed elements in s0, then the last two. Same for s1.
   // We must keep half of the state unchanged so users cannot set a bad state.
   s.state[0] = _mm256_set_epi64x(phi[3], phi[2] ^ seed[1], phi[1], phi[0] ^ seed[0]);
   s.state[1] = _mm256_set_epi64x(phi[7], phi[6] ^ seed[3], phi[5], phi[4] ^ seed[2]);
   for (size_t i = 0; i < ROUNDS; i++) {
-    prng_gen(&s, buf, 4 * STEPS);
+    prng_gen(&s, buf, 32 * STEPS);
     s.state[0] = s.state[1];
     s.state[1] = s.output;
   }
