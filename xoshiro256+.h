@@ -1,6 +1,9 @@
 #ifndef XOSHIRO_H
 #define XOSHIRO_H
 
+#include <stdint.h>
+#include <stddef.h>
+
 // Eight alternating Xoshiro256+ states benefitting from SIMD.
 // Code from: http://prng.di.unimi.it/xoshiro256plus.c
 // Speed comparison: http://prng.di.unimi.it/#speed
@@ -13,13 +16,13 @@
 #define ROTL(a,n) (((a) << (n)) | ((a) >> (64 - (n))))
 
 typedef struct prng_state {
-  __uint64_t state[4];
+  uint64_t state[4];
 } prng_state;
 
 // buf's size must be a multiple of 8 bytes.
-inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
-  __uint64_t t;
-  for (__uint64_t i = 0; i < size; i++) {
+static inline void prng_gen(prng_state *s, uint64_t buf[], size_t size) {
+  uint64_t t;
+  for (size_t i = 0; i < size; i++) {
     buf[i] = s->state[0] + s->state[3];
 
     t = s->state[1] << 17;
@@ -47,7 +50,7 @@ inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
 // fair. Ignoring bad splitmix64 gammas would hide severe seeding faults.
 prng_state prng_init(SEEDTYPE seed[4]) {
   prng_state s;
-  for (char j = 0; j < 4; j++) { s.state[j] = seed[j]; }
+  for (size_t j = 0; j < 4; j++) { s.state[j] = seed[j]; }
   if (s.state[0] == 0) { s.state[0] = 1; }
   return s;
 }

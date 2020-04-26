@@ -2,6 +2,7 @@
 #define CHACHA8_H
 #include <immintrin.h>
 #include <stdio.h>
+#include <stdint.h>
 
 // ChaCha8 using SIMD.
 // u8.h: using 8 blocks at a time (AVX2).
@@ -9,11 +10,11 @@
 // DO NOT USE THIS CODE FOR CRYPTOGRAPHIC PURPOSES.
 
 typedef struct prng_state {
-  __uint32_t state[16];
+  uint32_t state[16];
 } prng_state;
 
 #define ROUNDS 8
-#define U8TO32_LITTLE(p) (((__uint32_t*)(p))[0])
+#define U8TO32_LITTLE(p) (((uint32_t*)(p))[0])
 
 
 // SIMD primitives
@@ -90,9 +91,9 @@ typedef struct prng_state {
 
 
 // buf's size must be a multiple of 512 bytes.
-inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
+static inline void prng_gen(prng_state *s, uint64_t buf[], size_t size) {
   char *out = (char *)buf;
-  __uint64_t bytes = size * 2;
+  uint64_t bytes = size * 2;
   int i;
 
   if (!bytes || bytes < 512) { return; }
@@ -100,7 +101,7 @@ inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
   /* constant for shuffling bytes (replacing multiple-of-8 rotates) */
   __m256i rot16 = _mm256_set_epi8(13,12,15,14,9,8,11,10,5,4,7,6,1,0,3,2,13,12,15,14,9,8,11,10,5,4,7,6,1,0,3,2);
   __m256i rot8  = _mm256_set_epi8(14,13,12,15,10,9,8,11,6,5,4,7,2,1,0,3,14,13,12,15,10,9,8,11,6,5,4,7,2,1,0,3);
-  __uint32_t in12, in13;
+  uint32_t in12, in13;
 
   __m256i x_0  = _mm256_set1_epi32(s->state[0]);
   __m256i x_1  = _mm256_set1_epi32(s->state[1]);
@@ -179,7 +180,7 @@ inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
     __m256i t12, t13;
     in12 = s->state[12];
     in13 = s->state[13];
-    __uint64_t in1213 = ((__uint64_t)in12) | (((__uint64_t)in13) << 32);
+    uint64_t in1213 = ((uint64_t)in12) | (((uint64_t)in13) << 32);
     x_12 = _mm256_broadcastq_epi64(_mm_cvtsi64_si128(in1213));
     x_13 = _mm256_broadcastq_epi64(_mm_cvtsi64_si128(in1213));
 

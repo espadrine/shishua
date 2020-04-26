@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
   char reachedEOF = 0;
   while (!reachedEOF) {
     int readBytes = outputBufsize;
-    for (char i = 0; i < a.fnum; i++) {
+    for (int i = 0; i < a.fnum; i++) {
       ssize_t r = read(a.files[i], ibuf, BUFSIZE);
       for (int bi = 0; bi < r; bi++) {
         obuf[a.fnum * bi + i] = ibuf[bi];
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
   }
 
   // Discharging allocations.
-  for (char i = 0; i < a.fnum; i++) { close(a.files[i]); }
+  for (int i = 0; i < a.fnum; i++) { close(a.files[i]); }
   free(a.files); free(obuf);
   return 0;
 }

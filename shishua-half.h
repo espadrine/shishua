@@ -1,5 +1,8 @@
 #ifndef SHISHUA_H
 #define SHISHUA_H
+#include <stdint.h>
+#include <stddef.h>
+#include <string.h>
 #include <immintrin.h>
 typedef struct prng_state {
   __m256i state[2];
@@ -8,7 +11,7 @@ typedef struct prng_state {
 } prng_state;
 
 // buf's size must be a multiple of 32 bytes.
-inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
+static inline void prng_gen(prng_state *s, uint64_t buf[], size_t size) {
   __m256i s0 = s->state[0], counter = s->counter,
           s1 = s->state[1],       o = s->output,
           t0, t1, t2, t3, u0, u1, u2, u3;
@@ -30,7 +33,7 @@ inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
   // for a tiny amount of variation stirring.
   // I used the smallest odd numbers to avoid having a magic number.
   __m256i increment = _mm256_set_epi64x(1, 3, 5, 7);
-  for (__uint64_t i = 0; i < size; i += 4) {
+  for (size_t i = 0; i < size; i += 4) {
     _mm256_storeu_si256((__m256i*)&buf[i], o);
 
     // I apply the counter to s1,
@@ -61,22 +64,22 @@ inline void prng_gen(prng_state *s, __uint64_t buf[], __uint64_t size) {
 // Nothing up my sleeve: those are the hex digits of Φ,
 // the least approximable irrational number.
 // $ echo 'scale=310;obase=16;(sqrt(5)-1)/2' | bc
-static __uint64_t phi[8] = {
+static uint64_t phi[8] = {
   0x9E3779B97F4A7C15, 0xF39CC0605CEDC834, 0x1082276BF3A27251, 0xF86C6A11D0C18E95,
   0x2767F0B153D27B7F, 0x0347045B5BF1827F, 0x01886F0928403002, 0xC1D64BA40F335E36,
 };
 
 prng_state prng_init(SEEDTYPE seed[4]) {
   prng_state s;
-  s.counter = _mm256_set_epi64x(0, 0, 0, 0);
+  memset(&s, 0, sizeof(prng_state));
 # define STEPS 5
 # define ROUNDS 4
-  __uint64_t buf[4 * STEPS];  // 4 64-bit numbers per 256-bit SIMD.
+  uint64_t buf[4 * STEPS];  // 4 64-bit numbers per 256-bit SIMD.
   // Diffuse first two seed elements in s0, then the last two. Same for s1.
   // We must keep half of the state unchanged so users cannot set a bad state.
   s.state[0] = _mm256_set_epi64x(phi[3], phi[2] ^ seed[1], phi[1], phi[0] ^ seed[0]);
   s.state[1] = _mm256_set_epi64x(phi[7], phi[6] ^ seed[3], phi[5], phi[4] ^ seed[2]);
-  for (char i = 0; i < ROUNDS; i++) {
+  for (size_t i = 0; i < ROUNDS; i++) {
     prng_gen(&s, buf, 4 * STEPS);
     s.state[0] = s.state[1];
     s.state[1] = s.output;
