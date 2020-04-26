@@ -1,65 +1,156 @@
-#ifndef SHISHUA_H
-#define SHISHUA_H
+#ifndef SHISHUA_HALF_H
+#define SHISHUA_HALF_H
+
+#define SHISHUA_TARGET_SCALAR 0
+#define SHISHUA_TARGET_AVX2 1
+#define SHISHUA_TARGET_SSE2 2
+#define SHISHUA_TARGET_NEON 3
+#ifndef SHISHUA_TARGET
+#  if defined(__AVX2__) && (defined(__x86_64__) || defined(_M_X64))
+#    define SHISHUA_TARGET SHISHUA_TARGET_AVX2
+#  elif defined(__x86_64__) || defined(_M_X64) || defined(__SSE2__) \
+    || (defined(_M_IX86_FP) && _M_IX86_FP >= 2)
+#    define SHISHUA_TARGET SHISHUA_TARGET_SSE2
+#  elif defined(__ARM_NEON) || defined(__ARM_NEON__)
+#    define SHISHUA_TARGET SHISHUA_TARGET_NEON
+#  else
+#    define SHISHUA_TARGET SHISHUA_TARGET_SCALAR
+#  endif
+#endif
+
+// These are all optional: By defining SHISHUA_TARGET_SCALAR, you only
+// need this header.
+// Additionally, these headers can also be used on their own.
+#if SHISHUA_TARGET == SHISHUA_TARGET_AVX2
+#  include "shishua-half-avx2.h"
+#elif SHISHUA_TARGET == SHISHUA_TARGET_SSE2
+#  include "shishua-half-sse2.h"
+#elif SHISHUA_TARGET == SHISHUA_TARGET_NEON
+#  include "shishua-half-neon.h"
+#else // SHISHUA_TARGET == SHISHUA_TARGET_SCALAR
+
+// Portable scalar implementation of shishua half.
+// Aims for a balance between code size and performance.
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
-#include <immintrin.h>
+#include <assert.h>
+
+// Note: While it is an array, a "lane" refers to 4 consecutive uint64_t.
 typedef struct prng_state {
-  __m256i state[2];
-  __m256i output;
-  __m256i counter;
+  uint64_t state[8];   // 2 lanes
+  uint64_t output[4];  // 1 lane
+  uint64_t counter[4]; // 1 lane
 } prng_state;
 
-// buf's size must be a multiple of 32 bytes.
-static inline void prng_gen(prng_state *s, uint8_t buf[], size_t size) {
-  __m256i s0 = s->state[0], counter = s->counter,
-          s1 = s->state[1],       o = s->output,
-          t0, t1, t2, t3, u0, u1, u2, u3;
-  // The following shuffles move weak (low-diffusion) 32-bit parts of 64-bit
-  // additions to strong positions for enrichment. The low 32-bit part of a
-  // 64-bit chunk never moves to the same 64-bit chunk as its high part.
-  // They do not remain in the same chunk. Each part eventually reaches all
-  // positions ringwise: A to B, B to C, …, H to A.
-  // You may notice that they are simply 256-bit rotations (96 and 160).
-  __m256i shu0 = _mm256_set_epi32(4, 3, 2, 1, 0, 7, 6, 5),
-          shu1 = _mm256_set_epi32(2, 1, 0, 7, 6, 5, 4, 3);
-  // The counter is not necessary to beat PractRand.
-  // It sets a lower bound of 2^69 bytes = 512 EiB to the period,
-  // or about 1 millenia at 10 GiB/s.
-  // The increments are picked as odd numbers,
-  // since only coprimes of the base cover the full cycle,
-  // and all odd numbers are coprime of 2.
-  // I use different odd numbers for each 64-bit chunk
-  // for a tiny amount of variation stirring.
-  // I used the smallest odd numbers to avoid having a magic number.
-  __m256i increment = _mm256_set_epi64x(1, 3, 5, 7);
-  for (size_t i = 0; i < size; i += 32) {
-    _mm256_storeu_si256((__m256i*)&buf[i], o);
+// buf could technically alias with prng_state, according to the compiler.
+#if defined(__GNUC__) || defined(_MSC_VER)
+#  define SHISHUA_RESTRICT __restrict
+#else
+#  define SHISHUA_RESTRICT
+#endif
 
-    // I apply the counter to s1,
-    // since it is the one whose shift loses most entropy.
-    s1 = _mm256_add_epi64(s1, counter);
-    counter = _mm256_add_epi64(counter, increment);
-
-    // SIMD does not support rotations. Shift is the next best thing to entangle
-    // bits with other 64-bit positions. We must shift by an odd number so that
-    // each bit reaches all 64-bit positions, not just half. We must lose bits
-    // of information, so we minimize it: 1 and 3. We use different shift values
-    // to increase divergence between the two sides. We use rightward shift
-    // because the rightmost bits have the least diffusion in addition (the low
-    // bit is just a XOR of the low bits).
-    u0 = _mm256_srli_epi64(s0, 1);              u1 = _mm256_srli_epi64(s1, 3);
-    t0 = _mm256_permutevar8x32_epi32(s0, shu0); t1 = _mm256_permutevar8x32_epi32(s1, shu1);
-    // Addition is the main source of diffusion.
-    // Storing the output in the state keeps that diffusion permanently.
-    s0 = _mm256_add_epi64(t0, u0);              s1 = _mm256_add_epi64(t1, u1);
-
-    // Two orthogonally grown pieces evolving independently, XORed.
-    o = _mm256_xor_si256(u0, t1);
+static inline void shishua_write_le64(void *dst, uint64_t val) {
+  // Define to write in native endianness with memcpy
+  // Also, use memcpy on known little endian setups.
+# if defined(SHISHUA_NATIVE_ENDIAN) \
+   || defined(_WIN32) \
+   || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__) \
+   || defined(__LITTLE_ENDIAN__)
+  memcpy(dst, &val, sizeof(uint64_t));
+#else
+  // Byteshift write.
+  uint8_t *d = (uint8_t *)dst;
+  for (size_t i = 0; i < 8; i++) {
+    d[i] = (uint8_t)(val & 0xff);
+    val >>= 8;
   }
-  s->state[0] = s0; s->counter = counter;
-  s->state[1] = s1; s->output  = o;
+#endif
 }
+
+// buf's size must be a multiple of 32 bytes.
+static inline void prng_gen(prng_state *SHISHUA_RESTRICT state, uint8_t *SHISHUA_RESTRICT buf, size_t size) {
+
+  // TODO: consider adding proper uneven write handling
+  assert((size % 32 == 0) && "buf's size must be a multiple of 32 bytes.");
+
+  for (size_t i = 0; i < size; i += 32) {
+    uint64_t t[8];
+
+    // Write to buf
+    if (buf != NULL) {
+      for (size_t j = 0; j < 4; j++) {
+        shishua_write_le64(&buf[i + (8 * j)], state->output[j]);
+      }
+    }
+
+    for (size_t j = 0; j < 4; j++) {
+      // I apply the counter to s1,
+      // since it is the one whose shift loses most entropy.
+      state->state[j + 4] += state->counter[j];
+      // The counter is not necessary to beat PractRand.
+      // It sets a lower bound of 2^71 bytes = 2 ZiB to the period,
+      // or about 7 millenia at 10 GiB/s.
+      // The increments are picked as odd numbers,
+      // since only coprimes of the base cover the full cycle,
+      // and all odd numbers are coprime of 2.
+      // I use different odd numbers for each 64-bit chunk
+      // for a tiny amount of variation stirring.
+      // I used the smallest odd numbers to avoid having a magic number.
+      //
+      // For the scalar version, we calculate this dynamically, as it is
+      // simple enough.
+      state->counter[j] += 7 - (j * 2); // 7, 5, 3, 1
+    }
+
+    // The following shuffles move weak (low-diffusion) 32-bit parts of 64-bit
+    // additions to strong positions for enrichment. The low 32-bit part of a
+    // 64-bit chunk never moves to the same 64-bit chunk as its high part.
+    // They do not remain in the same chunk. Each part eventually reaches all
+    // positions ringwise: A to B, B to C, …, H to A.
+    // You may notice that they are simply 256-bit rotations (96 and 160).
+    //
+    // It would be much easier and cleaner to just reinterpret as a uint32_t
+    // pointer or use memcpy, but that is unfortunately endian-dependent, and
+    // the former also breaks strict aliasing.
+    //
+    // The only known solution which doesn't rely on endianness is to
+    // read two 64-bit integers and do a funnel shift.
+    //
+    // See shishua.h for details.
+
+    // Lookup table for the _offsets_ in the shuffle. Even lanes rotate
+    // by 5, odd lanes rotate by 3.
+    // If it were by 32-bit lanes, it would be
+    // { 5,6,7,0,1,2,3,4, 11,12,13,14,15,8,9,10 }
+    const uint8_t shuf_offsets[16] = { 2,3,0,1, 5,6,7,4,   // left
+                                       3,0,1,2, 6,7,4,5 }; // right
+    for (size_t j = 0; j < 8; j++) {
+      t[j] = (state->state[shuf_offsets[j]] >> 32) | (state->state[shuf_offsets[j + 8]] << 32);
+    }
+
+    for (size_t j = 0; j < 4; j++) {
+      // SIMD does not support rotations. Shift is the next best thing to entangle
+      // bits with other 64-bit positions. We must shift by an odd number so that
+      // each bit reaches all 64-bit positions, not just half. We must lose bits
+      // of information, so we minimize it: 1 and 3. We use different shift values
+      // to increase divergence between the two sides. We use rightward shift
+      // because the rightmost bits have the least diffusion in addition (the low
+      // bit is just a XOR of the low bits).
+      uint64_t u_lo = state->state[j + 0] >> 1;
+      uint64_t u_hi = state->state[j + 4] >> 3;
+
+      // Addition is the main source of diffusion.
+      // Storing the output in the state keeps that diffusion permanently.
+      state->state[j + 0] = u_lo + t[j + 0];
+      state->state[j + 4] = u_hi + t[j + 4];
+
+      // Two orthogonally grown pieces evolving independently, XORed.
+      state->output[j] = u_lo ^ t[j + 4];
+    }
+  }
+}
+#undef SHISHUA_RESTRICT
 
 // Nothing up my sleeve: those are the hex digits of Φ,
 // the least approximable irrational number.
@@ -70,22 +161,27 @@ static uint64_t phi[8] = {
 };
 
 prng_state prng_init(SEEDTYPE seed[4]) {
-  prng_state s;
-  memset(&s, 0, sizeof(prng_state));
+  prng_state s = {0};
+
 # define STEPS 5
 # define ROUNDS 4
-  uint8_t buf[32 * STEPS];  // 4 64-bit numbers per 256-bit SIMD.
   // Diffuse first two seed elements in s0, then the last two. Same for s1.
   // We must keep half of the state unchanged so users cannot set a bad state.
-  s.state[0] = _mm256_set_epi64x(phi[3], phi[2] ^ seed[1], phi[1], phi[0] ^ seed[0]);
-  s.state[1] = _mm256_set_epi64x(phi[7], phi[6] ^ seed[3], phi[5], phi[4] ^ seed[2]);
+  memcpy(s.state, phi, sizeof(phi));
+  for (size_t i = 0; i < 4; i++) {
+    s.state[i * 2] ^= seed[i];
+  }
   for (size_t i = 0; i < ROUNDS; i++) {
-    prng_gen(&s, buf, 32 * STEPS);
-    s.state[0] = s.state[1];
-    s.state[1] = s.output;
+    prng_gen(&s, NULL, 32 * STEPS);
+    for (size_t j = 0; j < 4; j++) {
+       s.state[j + 0] = s.state[j + 4];
+       s.state[j + 4] = s.output[j];
+    }
   }
 # undef STEPS
 # undef ROUNDS
   return s;
 }
-#endif
+#endif // SHISHUA_TARGET == SHISHUA_TARGET_SCALAR
+#endif // SHISHUA_HALF_SCALAR_H
+
