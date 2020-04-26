@@ -7,7 +7,7 @@
 #define BUFSIZE (1<<14)
 #define SEEDTYPE uint64_t
 #include "./prng.h"
-typedef struct args { uint64_t bytes; SEEDTYPE seed[4]; int rval; } args_t;
+typedef struct args { int64_t bytes; SEEDTYPE seed[4]; int rval; } args_t;
 args_t parseArgs(int argc, char **argv);
 
 int main(int argc, char **argv) {
@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
   prng_state s = prng_init(a.seed);
   uint64_t buf[BUFSIZE] __attribute__ ((aligned (64)));
   int64_t cycles = 0, start;
-  for (uint64_t bytes = a.bytes; bytes >= 0; bytes -= sizeof(buf)) {
+  for (int64_t bytes = a.bytes; bytes >= 0; bytes -= sizeof(buf)) {
     int wbytes = bytes < sizeof(buf)? bytes: sizeof(buf);
     start = _rdtsc();
     prng_gen(&s, buf, BUFSIZE);
@@ -40,7 +40,7 @@ args_t parseArgs(int argc, char **argv) {
       fprintf(stderr, "  --seed: as hexadecimal.\n");
       a.rval = -1;
     } else if (strcmp(argv[i], "-b") == 0 || strcmp(argv[i], "--bytes") == 0) {
-      a.bytes = strtoull(argv[++i], NULL, 0);
+      a.bytes = strtoll(argv[++i], NULL, 0);
     } else if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--seed") == 0) {
       a.seed[0] = strtoull(argv[++i], NULL, 0);
     }
