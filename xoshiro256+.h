@@ -22,8 +22,10 @@ typedef struct prng_state {
 // buf's size must be a multiple of 8 bytes.
 static inline void prng_gen(prng_state *s, uint64_t buf[], size_t size) {
   uint64_t t;
-  for (size_t i = 0; i < size; i++) {
-    buf[i] = s->state[0] + s->state[3];
+  size_t n = size / 8;
+  uint64_t *b = (uint64_t *)buf;
+  for (size_t i = 0; i < n; i++) {
+    b[i] = s->state[0] + s->state[3];
 
     t = s->state[1] << 17;
 

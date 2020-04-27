@@ -91,9 +91,7 @@ typedef struct prng_state {
 
 
 // buf's size must be a multiple of 512 bytes.
-static inline void prng_gen(prng_state *s, uint64_t buf[], size_t size) {
-  char *out = (char *)buf;
-  uint64_t bytes = size * 2;
+static inline void prng_gen(prng_state *s, uint8_t out[], size_t bytes) {
   int i;
 
   if (!bytes || bytes < 512) { return; }

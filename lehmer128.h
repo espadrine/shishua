@@ -10,12 +10,12 @@ typedef struct prng_state {
   __uint128_t state;
 } prng_state;
 
-#define ROTL(a,n) (((a) << (n)) | ((a) >> (64 - (n))))
-
 // buf's size must be a multiple of 8 bytes.
-static inline void prng_gen(prng_state *s, uint64_t buf[], size_t size) {
-  for (size_t i = 0; i < size; i++) {
-    buf[i] = (__uint128_t)(s->state *= 0xda942042e4dd58b5) >> 64;
+static inline void prng_gen(prng_state *s, uint8_t buf[], size_t size) {
+  uint64_t *b = (uint64_t *)buf;
+  size_t n = size / 8;
+  for (size_t i = 0; i < n; i++) {
+    b[i] = (__uint128_t)(s->state *= 0xda942042e4dd58b5) >> 64;
   }
 }
 
@@ -33,7 +33,6 @@ typedef struct prng_state {
   uint64_t state[2];
 } prng_state;
 
-#define ROTL(a,n) (((a) << (n)) | ((a) >> (64 - (n))))
 #if defined(_M_X64) && defined(_MSC_VER)
 #include <intrin.h>
 #pragma intrinsic(_umul128)

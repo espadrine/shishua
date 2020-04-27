@@ -1,9 +1,12 @@
-#ifndef SHISHUA_H
-#define SHISHUA_H
+// AVX2 x86_64 implementation of shishua
+#ifndef SHISHUA_AVX2_H
+#define SHISHUA_AVX2_H
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
 #include <immintrin.h>
+#include <assert.h>
+
 typedef struct prng_state {
   __m256i state[4];
   __m256i output[4];
@@ -11,7 +14,7 @@ typedef struct prng_state {
 } prng_state;
 
 // buf's size must be a multiple of 128 bytes.
-static inline void prng_gen(prng_state *s, uint64_t buf[], size_t size) {
+static inline void prng_gen(prng_state *s, uint8_t *buf, size_t size) {
   __m256i o0 = s->output[0], o1 = s->output[1], o2 = s->output[2], o3 = s->output[3],
           s0 =  s->state[0], s1 =  s->state[1], s2 =  s->state[2], s3 =  s->state[3],
           t0, t1, t2, t3, u0, u1, u2, u3, counter = s->counter;
@@ -33,11 +36,25 @@ static inline void prng_gen(prng_state *s, uint64_t buf[], size_t size) {
   // for a tiny amount of variation stirring.
   // I used the smallest odd numbers to avoid having a magic number.
   __m256i increment = _mm256_set_epi64x(1, 3, 5, 7);
-  for (size_t i = 0; i < size; i += 16) {
+<<<<<<< Updated upstream
+  for (size_t i = 0; i < size; i += 128) {
     _mm256_storeu_si256((__m256i*)&buf[i+ 0], o0);
-    _mm256_storeu_si256((__m256i*)&buf[i+ 4], o1);
-    _mm256_storeu_si256((__m256i*)&buf[i+ 8], o2);
-    _mm256_storeu_si256((__m256i*)&buf[i+12], o3);
+    _mm256_storeu_si256((__m256i*)&buf[i+32], o1);
+    _mm256_storeu_si256((__m256i*)&buf[i+64], o2);
+    _mm256_storeu_si256((__m256i*)&buf[i+96], o3);
+=======
+
+  // TODO: consider adding proper uneven write handling
+  assert((size % 128 == 0) && "buf's size must be a multiple of 128 bytes.");
+
+  for (size_t i = 0; i < size; i += 128) {
+    if (buf != NULL) {
+      _mm256_storeu_si256((__m256i*)&buf[i +  0], o0);
+      _mm256_storeu_si256((__m256i*)&buf[i + 32], o1);
+      _mm256_storeu_si256((__m256i*)&buf[i + 64], o2);
+      _mm256_storeu_si256((__m256i*)&buf[i + 96], o3);
+    }
+>>>>>>> Stashed changes
 
     // I apply the counter to s1,
     // since it is the one whose shift loses most entropy.
@@ -54,6 +71,7 @@ static inline void prng_gen(prng_state *s, uint64_t buf[], size_t size) {
     // bit is just a XOR of the low bits).
     u0 = _mm256_srli_epi64(s0, 1);              u1 = _mm256_srli_epi64(s1, 3);
     u2 = _mm256_srli_epi64(s2, 1);              u3 = _mm256_srli_epi64(s3, 3);
+    // Note: _mm256_alignr_epi8 and _mm256_sll/ri_si256 only shift inside 128-bit lanes.
     t0 = _mm256_permutevar8x32_epi32(s0, shu0); t1 = _mm256_permutevar8x32_epi32(s1, shu1);
     t2 = _mm256_permutevar8x32_epi32(s2, shu0); t3 = _mm256_permutevar8x32_epi32(s3, shu1);
     // Addition is the main source of diffusion.
@@ -87,7 +105,6 @@ prng_state prng_init(SEEDTYPE seed[4]) {
   memset(&s, 0, sizeof(prng_state));
 # define STEPS 1
 # define ROUNDS 13
-  uint64_t buf[16 * STEPS];  // 16 64-bit numbers per 128-byte output.
   // Diffuse first two seed elements in s0, then the last two. Same for s1.
   // We must keep half of the state unchanged so users cannot set a bad state.
   s.state[0] = _mm256_set_epi64x(phi[ 3], phi[ 2] ^ seed[1], phi[ 1], phi[ 0] ^ seed[0]);
@@ -95,7 +112,7 @@ prng_state prng_init(SEEDTYPE seed[4]) {
   s.state[2] = _mm256_set_epi64x(phi[11], phi[10] ^ seed[3], phi[ 9], phi[ 8] ^ seed[2]);
   s.state[3] = _mm256_set_epi64x(phi[15], phi[14] ^ seed[1], phi[13], phi[12] ^ seed[0]);
   for (size_t i = 0; i < ROUNDS; i++) {
-    prng_gen(&s, buf, 16 * STEPS);
+    prng_gen(&s, NULL, 128 * STEPS);
     s.state[0] = s.output[3]; s.state[1] = s.output[2];
     s.state[2] = s.output[1]; s.state[3] = s.output[0];
   }

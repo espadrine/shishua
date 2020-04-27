@@ -20,7 +20,9 @@ typedef struct prng_state {
 // buf's size must be a multiple of 8 bytes.
 static inline void prng_gen(prng_state *s, uint64_t buf[], size_t size) {
   uint64_t t[XOSHIRO256_UNROLL];
-  for (size_t i = 0; i < size; i += XOSHIRO256_UNROLL) {
+  size_t n = size / 8;
+  uint64_t *b = (uint64_t *)buf;
+  for (size_t i = 0; i < n; i += XOSHIRO256_UNROLL) {
     for (size_t j = 0; j < XOSHIRO256_UNROLL; j++) { buf[i + j] = s->state[0][j] + s->state[3][j]; }
 
     for (size_t j = 0; j < XOSHIRO256_UNROLL; j++) { t[j] = s->state[1][j] << 17; }

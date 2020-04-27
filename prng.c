@@ -4,9 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <x86intrin.h>
-#define BUFSIZE (1<<14)
+#define BUFSIZE (1<<17)
 #define SEEDTYPE uint64_t
-#include "./prng.h"
+#ifndef HEADER
+#  define HEADER "./prng.h"
+#endif
+#include HEADER
 typedef struct args { int64_t bytes; SEEDTYPE seed[4]; int rval; } args_t;
 args_t parseArgs(int argc, char **argv);
 
@@ -14,12 +17,12 @@ int main(int argc, char **argv) {
   args_t a = parseArgs(argc, argv);
   if (a.rval < 0) { return a.rval; }
   prng_state s = prng_init(a.seed);
-  uint64_t buf[BUFSIZE] __attribute__ ((aligned (64)));
+  uint8_t buf[BUFSIZE] __attribute__ ((aligned (64)));
   int64_t cycles = 0, start;
   for (int64_t bytes = a.bytes; bytes >= 0; bytes -= sizeof(buf)) {
     int wbytes = bytes < sizeof(buf)? bytes: sizeof(buf);
     start = _rdtsc();
-    prng_gen(&s, buf, BUFSIZE);
+    prng_gen(&s, buf, sizeof(buf));
     cycles += _rdtsc() - start;
     ssize_t w = write(STDOUT_FILENO, buf, wbytes);
   }

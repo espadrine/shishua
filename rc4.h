@@ -18,14 +18,12 @@ typedef struct prng_state {
   shuffle[(j)] = si; }
 
 // buf's size must be a multiple of 8 bytes; it could get bytes one at a time.
-static inline void prng_gen(prng_state *s, uint64_t buf[], size_t size) {
+static inline void prng_gen(prng_state *s, uint8_t buf[], size_t size) {
   uint8_t *shuffle = s->shuffle, *b = buf;
   for (size_t i = 0; i < size; i++) {
-    for (size_t j = 0; j < 8; j++) {
-      s->i++; s->j += shuffle[s->i];
-      SWAP(s->i, s->j);
-      b[8*i + j] = shuffle[shuffle[s->i] + shuffle[s->j]];
-    }
+    s->i++; s->j += shuffle[s->i];
+    SWAP(s->i, s->j);
+    b[i] = shuffle[shuffle[s->i] + shuffle[s->j]];
   }
 }
 

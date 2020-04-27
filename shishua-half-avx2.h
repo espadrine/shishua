@@ -1,17 +1,27 @@
-#ifndef SHISHUA_H
-#define SHISHUA_H
+// AVX2 x86_64 implementation of shishua half
+#ifndef SHISHUA_HALF_AVX2_H
+#define SHISHUA_HALF_AVX2_H
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
 #include <immintrin.h>
+#include <assert.h>
+
 typedef struct prng_state {
   __m256i state[2];
   __m256i output;
   __m256i counter;
 } prng_state;
 
+// buf could technically alias with prng_state, according to the compiler.
+#if defined(__GNUC__) || defined(_MSC_VER)
+#  define SHISHUA_RESTRICT __restrict
+#else
+#  define SHISHUA_RESTRICT
+#endif
+
 // buf's size must be a multiple of 32 bytes.
-static inline void prng_gen(prng_state *s, uint64_t buf[], size_t size) {
+static inline void prng_gen(prng_state *SHISHUA_RESTRICT s, uint8_t *SHISHUA_RESTRICT buf, size_t size) {
   __m256i s0 = s->state[0], counter = s->counter,
           s1 = s->state[1],       o = s->output,
           t0, t1, t2, t3, u0, u1, u2, u3;
@@ -33,8 +43,19 @@ static inline void prng_gen(prng_state *s, uint64_t buf[], size_t size) {
   // for a tiny amount of variation stirring.
   // I used the smallest odd numbers to avoid having a magic number.
   __m256i increment = _mm256_set_epi64x(1, 3, 5, 7);
-  for (size_t i = 0; i < size; i += 4) {
+<<<<<<< Updated upstream
+  for (size_t i = 0; i < size; i += 32) {
     _mm256_storeu_si256((__m256i*)&buf[i], o);
+=======
+
+  // TODO: consider adding proper uneven write handling
+  assert((size % 32 == 0) && "buf's size must be a multiple of 32 bytes.");
+
+  for (size_t i = 0; i < size; i += 32) {
+    if (buf != NULL) {
+      _mm256_storeu_si256((__m256i*)&buf[i], o);
+    }
+>>>>>>> Stashed changes
 
     // I apply the counter to s1,
     // since it is the one whose shift loses most entropy.
@@ -60,6 +81,7 @@ static inline void prng_gen(prng_state *s, uint64_t buf[], size_t size) {
   s->state[0] = s0; s->counter = counter;
   s->state[1] = s1; s->output  = o;
 }
+#undef SHISHUA_RESTRICT
 
 // Nothing up my sleeve: those are the hex digits of Φ,
 // the least approximable irrational number.
@@ -74,13 +96,12 @@ prng_state prng_init(SEEDTYPE seed[4]) {
   memset(&s, 0, sizeof(prng_state));
 # define STEPS 5
 # define ROUNDS 4
-  uint64_t buf[4 * STEPS];  // 4 64-bit numbers per 256-bit SIMD.
   // Diffuse first two seed elements in s0, then the last two. Same for s1.
   // We must keep half of the state unchanged so users cannot set a bad state.
   s.state[0] = _mm256_set_epi64x(phi[3], phi[2] ^ seed[1], phi[1], phi[0] ^ seed[0]);
   s.state[1] = _mm256_set_epi64x(phi[7], phi[6] ^ seed[3], phi[5], phi[4] ^ seed[2]);
   for (size_t i = 0; i < ROUNDS; i++) {
-    prng_gen(&s, buf, 4 * STEPS);
+    prng_gen(&s, NULL, 32 * STEPS);
     s.state[0] = s.state[1];
     s.state[1] = s.output;
   }
