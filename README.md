@@ -16,7 +16,7 @@ Implementations:
 
 <table>
   <tr><th>Name   <th>Performance <th>Quality <th>Seed correlation
-  <tr><td>SHISHUA       <td>0.06 <td>>32 TiB <td>>256 GiB
+  <tr><td>SHISHUA       <td>0.06 <td>>32 TiB <td>  >8 TiB
   <tr><td>xoshiro256+x8 <td>0.07 <td>  1 KiB <td>   0 KiB
   <tr><td>RomuTrio      <td>0.31 <td>>32 TiB <td>   1 KiB
   <tr><td>xoshiro256+   <td>0.34 <td>512 MiB <td>   1 KiB
