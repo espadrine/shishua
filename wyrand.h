@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
 
 // wyrand: https://github.com/wangyi-fudan/wyhash/blob/master/wyhash.h
 // A (hash-table) hash derivative.
@@ -11,6 +12,24 @@ typedef struct prng_state {
   uint64_t counter;
 } prng_state;
 
+// Writes a 64-bit little endian integer to dst
+static inline void prng_write_le64(void *dst, uint64_t val) {
+  // Define to write in native endianness with memcpy
+  // Also, use memcpy on known little endian setups.
+# if defined(SHISHUA_NATIVE_ENDIAN) \
+   || defined(_WIN32) \
+   || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__) \
+   || defined(__LITTLE_ENDIAN__)
+  memcpy(dst, &val, sizeof(uint64_t));
+#else
+  // Byteshift write.
+  uint8_t *d = (uint8_t *)dst;
+  for (size_t i = 0; i < 8; i++) {
+    d[i] = (uint8_t)(val & 0xff);
+    val >>= 8;
+  }
+#endif
+}
 #define ROTL(a,n) (((a) << (n)) | ((a) >> (64 - (n))))
 #ifdef __SIZEOF_INT128__
 static inline uint64_t prng_mult128_xorfold(uint64_t lhs, uint64_t rhs) {
@@ -41,11 +60,9 @@ static inline uint64_t prng_mult128_xorfold(uint64_t lhs, uint64_t rhs) {
 #endif
 // buf's size must be a multiple of 8 bytes.
 static inline void prng_gen(prng_state *s, uint8_t buf[], size_t size) {
-  size_t n = size / 8;
-  uint64_t *b = (uint64_t *)buf;
-  for (size_t i = 0; i < n; i++) {
+  for (size_t i = 0; i < size; i += 8) {
     s->counter += 0xa0761d6478bd642full;
-    b[i] = prng_mult128_xorfold(s->counter ^ 0xe7037ed1a0b428dbull, s->counter);
+    prng_write_le64(&buf[i], prng_mult128_xorfold(s->counter ^ 0xe7037ed1a0b428dbull, s->counter));
   }
 }
 

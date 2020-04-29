@@ -3,7 +3,28 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
+
 // LEHMER128: https://lemire.me/blog/2019/03/19/the-fastest-conventional-random-number-generator-that-can-pass-big-crush/
+
+// Writes a 64-bit little endian integer to dst
+static inline void prng_write_le64(void *dst, uint64_t val) {
+  // Define to write in native endianness with memcpy
+  // Also, use memcpy on known little endian setups.
+# if defined(SHISHUA_NATIVE_ENDIAN) \
+   || defined(_WIN32) \
+   || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__) \
+   || defined(__LITTLE_ENDIAN__)
+  memcpy(dst, &val, sizeof(uint64_t));
+#else
+  // Byteshift write.
+  uint8_t *d = (uint8_t *)dst;
+  for (size_t i = 0; i < 8; i++) {
+    d[i] = (uint8_t)(val & 0xff);
+    val >>= 8;
+  }
+#endif
+}
 
 #ifdef __SIZEOF_INT128__
 typedef struct prng_state {
@@ -12,10 +33,9 @@ typedef struct prng_state {
 
 // buf's size must be a multiple of 8 bytes.
 static inline void prng_gen(prng_state *s, uint8_t buf[], size_t size) {
-  uint64_t *b = (uint64_t *)buf;
-  size_t n = size / 8;
-  for (size_t i = 0; i < n; i++) {
-    b[i] = (__uint128_t)(s->state *= 0xda942042e4dd58b5) >> 64;
+  size_t n = size;
+  for (size_t i = 0; i < n; i += 8) {
+    prng_write_le64(&buf[i], (__uint128_t)(s->state *= 0xda942042e4dd58b5) >> 64);
   }
 }
 
@@ -58,10 +78,10 @@ static inline void prng_mult128by64(uint64_t lhs[2], uint64_t rhs) {
 }
 #endif
 // buf's size must be a multiple of 8 bytes.
-static inline void prng_gen(prng_state *s, uint64_t buf[], size_t size) {
-  for (size_t i = 0; i < size; i++) {
+static inline void prng_gen(prng_state *s, uint8_t buf[], size_t size) {
+  for (size_t i = 0; i < size; i += 8) {
     prng_mult128by64(s->state, 0xda942042e4dd58b5);
-    buf[i] = s->state[1];
+    prng_write_le64(&buf[i], s->state[1]);
   }
 }
 

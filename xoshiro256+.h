@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
 
 // Eight alternating Xoshiro256+ states benefitting from SIMD.
 // Code from: http://prng.di.unimi.it/xoshiro256plus.c
@@ -19,13 +20,32 @@ typedef struct prng_state {
   uint64_t state[4];
 } prng_state;
 
+// Writes a 64-bit little endian integer to dst
+static inline void prng_write_le64(void *dst, uint64_t val) {
+  // Define to write in native endianness with memcpy
+  // Also, use memcpy on known little endian setups.
+# if defined(SHISHUA_NATIVE_ENDIAN) \
+   || defined(_WIN32) \
+   || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__) \
+   || defined(__LITTLE_ENDIAN__)
+  memcpy(dst, &val, sizeof(uint64_t));
+#else
+  // Byteshift write.
+  uint8_t *d = (uint8_t *)dst;
+  for (size_t i = 0; i < 8; i++) {
+    d[i] = (uint8_t)(val & 0xff);
+    val >>= 8;
+  }
+#endif
+}
+
 // buf's size must be a multiple of 8 bytes.
-static inline void prng_gen(prng_state *s, uint64_t buf[], size_t size) {
+static inline void prng_gen(prng_state *s, uint8_t buf[], size_t size) {
   uint64_t t;
-  size_t n = size / 8;
-  uint64_t *b = (uint64_t *)buf;
-  for (size_t i = 0; i < n; i++) {
-    b[i] = s->state[0] + s->state[3];
+  size_t n = size;
+  uint8_t *b = (uint8_t *)buf;
+  for (size_t i = 0; i < n; i += 8) {
+    prng_write_le64(&b[i], s->state[0] + s->state[3]);
 
     t = s->state[1] << 17;
 
