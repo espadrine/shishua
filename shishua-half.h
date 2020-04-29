@@ -11,7 +11,17 @@
 #  elif defined(__x86_64__) || defined(_M_X64) || defined(__SSE2__) \
     || (defined(_M_IX86_FP) && _M_IX86_FP >= 2)
 #    define SHISHUA_TARGET SHISHUA_TARGET_SSE2
-#  elif defined(__ARM_NEON) || defined(__ARM_NEON__)
+// GCC's NEON codegen leaves much to be desired, at least as of 9.2.0. The
+// scalar path ends up being faster.
+// Device: Google Pixel 2 XL, 2.46GHz Qualcomm Snapdragon 835
+//                       |   GCC 9.2.0    |  Clang 9.0.1
+//   shishua neon        | 0.2845 ns/byte | 0.0966 ns/byte
+//   shishua scalar      | 0.2056 ns/byte | 0.2958 ns/byte
+//   shishua half neon   | 0.5169 ns/byte | 0.1929 ns/byte
+//   shishua half scalar | 0.2496 ns/byte | 0.2911 ns/byte
+// Therefore, we only autoselect the NEON path on Clang, at least until GCC's
+// NEON codegen improves.
+#  elif (defined(__ARM_NEON) || defined(__ARM_NEON__)) && defined(__clang__)
 #    define SHISHUA_TARGET SHISHUA_TARGET_NEON
 #  else
 #    define SHISHUA_TARGET SHISHUA_TARGET_SCALAR
@@ -71,16 +81,17 @@ static inline void shishua_write_le64(void *dst, uint64_t val) {
 // buf's size must be a multiple of 32 bytes.
 static inline void prng_gen(prng_state *SHISHUA_RESTRICT state, uint8_t *SHISHUA_RESTRICT buf, size_t size) {
 
+  uint8_t *b = buf;
   // TODO: consider adding proper uneven write handling
   assert((size % 32 == 0) && "buf's size must be a multiple of 32 bytes.");
 
   for (size_t i = 0; i < size; i += 32) {
     uint64_t t[8];
-
     // Write to buf
     if (buf != NULL) {
       for (size_t j = 0; j < 4; j++) {
-        shishua_write_le64(&buf[i + (8 * j)], state->output[j]);
+        shishua_write_le64(b, state->output[j]);
+        b += 8;
       }
     }
 
@@ -128,7 +139,6 @@ static inline void prng_gen(prng_state *SHISHUA_RESTRICT state, uint8_t *SHISHUA
     for (size_t j = 0; j < 8; j++) {
       t[j] = (state->state[shuf_offsets[j]] >> 32) | (state->state[shuf_offsets[j + 8]] << 32);
     }
-
     for (size_t j = 0; j < 4; j++) {
       // SIMD does not support rotations. Shift is the next best thing to entangle
       // bits with other 64-bit positions. We must shift by an odd number so that
@@ -139,7 +149,6 @@ static inline void prng_gen(prng_state *SHISHUA_RESTRICT state, uint8_t *SHISHUA
       // bit is just a XOR of the low bits).
       uint64_t u_lo = state->state[j + 0] >> 1;
       uint64_t u_hi = state->state[j + 4] >> 3;
-
       // Addition is the main source of diffusion.
       // Storing the output in the state keeps that diffusion permanently.
       state->state[j + 0] = u_lo + t[j + 0];
