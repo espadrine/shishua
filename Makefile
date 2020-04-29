@@ -1,57 +1,52 @@
 SHELL = bash
-CCFLAGS =
-FINGERPRINT = $(shell ./shishua | ./fingerprint.sh)
-# Please add this list to .gitignore when modifying this line.
-PRNGS = shishua shishua-half chacha8 xoshiro256plusx8 xoshiro256plus romu wyrand lehmer128 rc4
+CFLAGS := -O3 -g
+FINGERPRINT := $(shell ./shishua -b 256 | ./fingerprint.sh)
+TARGETS := scalar sse2 ssse3 avx2 neon
+SHISHUAS :=  shishua shishua-half \
+             $(addprefix shishua-,$(TARGETS)) \
+             $(addprefix shishua-half-,$(TARGETS))
+# Should match header names (aside from -scalar and -ssse3)
+PRNGS := $(SHISHUAS) chacha8 xoshiro256plusx8 xoshiro256+x8 xoshiro256+ xoshiro256plus romu wyrand lehmer128 rc4
+TESTS := $(addprefix test-,$(TARGETS))
 SSH_KEY = ~/.ssh/id_ed25519
 
-shishua: shishua.h prng.c
-	cp $< prng.h
-	gcc -O9 -mavx2 $(CCFLAGS) -o $@ prng.c
-	rm prng.h
+# we need second expansions
+.SECONDEXPANSION:
 
-shishua-half: shishua-half.h prng.c
-	cp $< prng.h
-	gcc -O9 -mavx2 $(CCFLAGS) -o $@ prng.c
-	rm prng.h
+##
+## Target rules
+##
 
-chacha8: chacha8.h prng.c
-	cp $< prng.h
-	gcc -O9 -mavx2 $(CCFLAGS) -o $@ prng.c
-	rm prng.h
+# Replace pseudo target names with the real names
+fix_target = $(subst plus,+,$(subst -scalar,,$(subst -ssse3,-sse2,$(1))))
+$(PRNGS): HEADER = $(call fix_target,$@).h
+$(TESTS): SUFFIX = $(patsubst test%,%.h,$(call fix_target,$@))
 
-xoshiro256plusx8: xoshiro256+x8.h prng.c
-	cp $< prng.h
-	gcc -O9 -fdisable-tree-cunrolli -march=native $(CCFLAGS) -o $@ prng.c
-	rm prng.h
+# Force SSE2, disable SSE3
+%-sse2: CFLAGS += -msse2 -mno-sse3 -mno-ssse3
+%-ssse3: CFLAGS += -mssse3
+# -mtune=haswell disables GCC load/store splitting
+%-avx2 chacha8: CFLAGS += -mavx2 -mtune=haswell
+# force scalar target
+%-scalar: CFLAGS += -DSHISHUA_TARGET=SHISHUA_TARGET_SCALAR
 
-xoshiro256plus: xoshiro256+.h prng.c
-	cp $< prng.h
-	gcc -O9 $(CCFLAGS) -o $@ prng.c
-	rm prng.h
+##
+## Recipes
+##
+default: shishua shishua-half
 
-romu: romu.h prng.c
-	cp $< prng.h
-	gcc -O9 $(CCFLAGS) -o $@ prng.c
-	rm prng.h
+# e.g. make neon -> make shishua-neon shishua-half-neon
+$(TARGETS): %: shishua-% shishua-half-%
 
-wyrand: wyrand.h prng.c
-	cp $< prng.h
-	gcc -O9 $(CCFLAGS) -o $@ prng.c
-	rm prng.h
+$(PRNGS): $$(HEADER) prng.c
+	$(CC) $(CFLAGS) -DHEADER='"$(HEADER)"' prng.c -o $@
 
-lehmer128: lehmer128.h prng.c
-	cp $< prng.h
-	gcc -O9 $(CCFLAGS) -o $@ prng.c
-	rm prng.h
-
-rc4: rc4.h prng.c
-	cp $< prng.h
-	gcc -O9 $(CCFLAGS) -o $@ prng.c
-	rm prng.h
+$(TESTS): test-vectors.c test-vectors.h shishua$$(SUFFIX) shishua-half$$(SUFFIX)
+	$(CC) $(CFLAGS) -DHEADER='"shishua$(SUFFIX)"' -DHEADER_HALF='"shishua-half$(SUFFIX)"' $< -o $@
+	./$@
 
 intertwine: intertwine.c
-	gcc -o $@ $<
+	$(CC) $(CFLAGS) -o $@ $<
 
 ##
 ## Quality testing.
@@ -164,3 +159,7 @@ benchmark-amd: /usr/bin/gcloud
 	gcloud compute instances delete shishua-amd
 
 .PHONY: test benchmark-intel benchmark-amd
+clean:
+	$(RM) -rf $(TESTS) $(PRNGS) intertwine
+
+.PHONY: clean
