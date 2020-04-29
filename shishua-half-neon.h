@@ -49,15 +49,16 @@ static inline void prng_gen(prng_state *SHISHUA_RESTRICT s, uint8_t *SHISHUA_RES
   // I used the smallest odd numbers to avoid having a magic number.
   uint64x2_t increment_lo = SHISHUA_VSETQ_N_U64(7, 5);
   uint64x2_t increment_hi = SHISHUA_VSETQ_N_U64(3, 1);
-
+  uint8_t *b = buf;
   // TODO: consider adding proper uneven write handling
   assert((size % 32 == 0) && "buf's size must be a multiple of 32 bytes.");
 
-  for (size_t i = 0; i < size; i += 32) {
+  for (size_t i = 0; i < size/32; i++) {
     if (buf != NULL) {
-      vst1q_u8(&buf[i +  0], vreinterpretq_u8_u64(o_lo));
-      vst1q_u8(&buf[i + 16], vreinterpretq_u8_u64(o_hi));
+      vst1q_u8(&b[0], vreinterpretq_u8_u64(o_lo)); b += 16;
+      vst1q_u8(&b[0], vreinterpretq_u8_u64(o_hi)); b += 16;
     }
+
     // I apply the counter to s1,
     // since it is the one whose shift loses most entropy.
     s1_lo = vaddq_u64(s1_lo, counter_lo);
@@ -101,12 +102,12 @@ static inline void prng_gen(prng_state *SHISHUA_RESTRICT s, uint8_t *SHISHUA_RES
     __asm__("" : "+w" (u_lo), "+w" (u_hi));
 #endif
 
+
     // Two orthogonally grown pieces evolving independently, XORed.
     // Note: We do this first because on the assembly side, vsra would overwrite
     // t1_lo and t1_hi.
     o_lo = veorq_u64(u_lo, t1_lo);
     o_hi = veorq_u64(u_hi, t1_hi);
-
     // Addition is the main source of diffusion.
     // Storing the output in the state keeps that diffusion permanently.
     s0_lo = vaddq_u64(t0_lo, u_lo);
@@ -114,7 +115,6 @@ static inline void prng_gen(prng_state *SHISHUA_RESTRICT s, uint8_t *SHISHUA_RES
     // Use vsra here directly.
     s1_lo = vsraq_n_u64(t1_lo, s1_lo, 3);
     s1_hi = vsraq_n_u64(t1_hi, s1_hi, 3);
-
   }
   s->state[0] = s0_lo;  s->state[1] = s0_hi;
   s->state[2] = s1_lo;  s->state[3] = s1_hi;
