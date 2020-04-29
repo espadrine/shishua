@@ -8,23 +8,25 @@
 #ifndef SHISHUA_TARGET
 #  if defined(__AVX2__) && (defined(__x86_64__) || defined(_M_X64))
 #    define SHISHUA_TARGET SHISHUA_TARGET_AVX2
-#  elif defined(__x86_64__) || defined(_M_X64) || defined(__SSE2__) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2)
+#  elif defined(__x86_64__) || defined(_M_X64) || defined(__SSE2__) \
+    || (defined(_M_IX86_FP) && _M_IX86_FP >= 2)
 #    define SHISHUA_TARGET SHISHUA_TARGET_SSE2
 #  elif defined(__ARM_NEON) || defined(__ARM_NEON__)
-#    define SHISHUA_TARGET SHISHUA_TARGET_AVX2
+#    define SHISHUA_TARGET SHISHUA_TARGET_NEON
 #  else
 #    define SHISHUA_TARGET SHISHUA_TARGET_SCALAR
 #  endif
 #endif
 
-// These are all optional, with defining SHISHUA_TARGET_SCALAR, you only
+// These are all optional: By defining SHISHUA_TARGET_SCALAR, you only
 // need this header.
+// Additionally, these headers can also be used on their own.
 #if SHISHUA_TARGET == SHISHUA_TARGET_AVX2
-#  include "shishua-avx2.h"
-//#elif SHISHUA_TARGET == SHISHUA_TARGET_SSE2
-//#  include "shishua-sse2.h"
-//#elif SHISHUA_TARGET == SHISHUA_TARGET_NEON
-//#  include "shishua-neon.h"
+#  include "shishua-half-avx2.h"
+#elif SHISHUA_TARGET == SHISHUA_TARGET_SSE2
+#  include "shishua-half-sse2.h"
+#elif SHISHUA_TARGET == SHISHUA_TARGET_NEON
+#  include "shishua-half-neon.h"
 #else // SHISHUA_TARGET == SHISHUA_TARGET_SCALAR
 
 // Portable scalar implementation of shishua half.

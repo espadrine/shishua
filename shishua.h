@@ -11,7 +11,7 @@
 #  elif defined(__x86_64__) || defined(_M_X64) || defined(__SSE2__) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2)
 #    define SHISHUA_TARGET SHISHUA_TARGET_SSE2
 #  elif defined(__ARM_NEON) || defined(__ARM_NEON__)
-#    define SHISHUA_TARGET SHISHUA_TARGET_AVX2
+#    define SHISHUA_TARGET SHISHUA_TARGET_NEON
 #  else
 #    define SHISHUA_TARGET SHISHUA_TARGET_SCALAR
 #  endif
@@ -21,10 +21,10 @@
 // need this header.
 #if SHISHUA_TARGET == SHISHUA_TARGET_AVX2
 #  include "shishua-avx2.h"
-//#elif SHISHUA_TARGET == SHISHUA_TARGET_SSE2
-//#  include "shishua-sse2.h"
-//#elif SHISHUA_TARGET == SHISHUA_TARGET_NEON
-//#  include "shishua-neon.h"
+#elif SHISHUA_TARGET == SHISHUA_TARGET_SSE2
+#  include "shishua-sse2.h"
+#elif SHISHUA_TARGET == SHISHUA_TARGET_NEON
+#  include "shishua-neon.h"
 #else // SHISHUA_TARGET == SHISHUA_TARGET_SCALAR
 
 // Portable scalar implementation of shishua.
