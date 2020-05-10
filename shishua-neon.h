@@ -12,7 +12,7 @@ typedef struct prng_state {
   uint64x2_t counter[2];
 } prng_state;
 
-#if defined(__GNUC__) //&& (defined(__BYTE_ORDER__) && __BYTE_ORDER__==__ORDER_LITTLE_ENDIAN__)
+#if defined(__GNUC__) && (defined(__BYTE_ORDER__) && __BYTE_ORDER__==__ORDER_LITTLE_ENDIAN__)
 #  define SHISHUA_VSETQ_N_U64(a, b) (__extension__(uint64x2_t) { a, b })
 #else
 #  define SHISHUA_VSETQ_N_U64(a, b) vcombine_u64(vdup_n_u64(a), vdup_n_u64(b))
