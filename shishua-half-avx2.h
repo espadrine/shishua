@@ -33,8 +33,14 @@ static inline void prng_gen(prng_state *s, uint8_t buf[], size_t size) {
   // for a tiny amount of variation stirring.
   // I used the smallest odd numbers to avoid having a magic number.
   __m256i increment = _mm256_set_epi64x(1, 3, 5, 7);
+
+  // TODO: consider adding proper uneven write handling
+  assert((size % 32 == 0) && "buf's size must be a multiple of 32 bytes.");
+
   for (size_t i = 0; i < size; i += 32) {
-    _mm256_storeu_si256((__m256i*)&buf[i], o);
+    if (buf != NULL) {
+      _mm256_storeu_si256((__m256i*)&buf[i], o);
+    }
 
     // I apply the counter to s1,
     // since it is the one whose shift loses most entropy.
