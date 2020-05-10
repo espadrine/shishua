@@ -14,21 +14,7 @@ static inline prng_timer_t timer_start(void) {
 }
 static inline int64_t timer_elapsed(prng_timer_t start) {
   int64_t end = _rdtsc();
-  // While latency isn't as much of a problem with _rdtsc as it is with
-  // clock_gettime, measure it anyways to be safe.
-  static int64_t latency = -1;
-  if (latency == -1) {
-    const int LATENCY_ROUNDS = 256;
-    latency = 0;
-    // sample 256 times and get the average.
-    for (int i = 0; i < LATENCY_ROUNDS; i++) {
-      int64_t a = timer_start();
-      int64_t b = timer_start();
-      latency += b - a;
-    }
-    latency /= LATENCY_ROUNDS;
-  }
-  return end - start - latency;
+  return end - start;
 }
 #else
 // fall back to nanoseconds, e.g. on aarch64 where __builtin_readcyclecounter
