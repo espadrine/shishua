@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <immintrin.h>
+#include <assert.h>
 typedef struct prng_state {
   __m256i state[4];
   __m256i output[4];

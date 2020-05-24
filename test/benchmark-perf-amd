@@ -1,19 +1,10 @@
-Date Sun Apr 26 19:33:43 UTC 2020
-shishua fingerprint: hkntbokqbm
-0.075883 cpb
-shishua-half fingerprint: crmvuipmhy
-0.253438 cpb
-chacha8 fingerprint: qrogmlfkoe
-0.435792 cpb
-xoshiro256plusx8 fingerprint: pdplppbajh
-0.092345 cpb
-xoshiro256plus fingerprint: hkzwcgvqky
-0.315087 cpb
-romu fingerprint: tcfufmmkwo
-0.280142 cpb
-wyrand fingerprint: maxkifehvu
-0.318001 cpb
-lehmer128 fingerprint: evisiyzxxl
-0.366043 cpb
-rc4 fingerprint: uquhlmktda
-12.590516 cpb
+Date Tue Dec 29 01:38:36 UTC 2020
+shishua.h: 0.073555 cpb
+shishua-half.h: 0.231367 cpb
+chacha8.h: 0.410484 cpb
+xoshiro256plusx8.h: 0.085930 cpb
+xoshiro256plus.h: 0.299290 cpb
+romu.h: 0.246699 cpb
+wyrand.h: 0.298760 cpb
+lehmer128.h: 0.344335 cpb
+rc4.h: 11.876867 cpb
