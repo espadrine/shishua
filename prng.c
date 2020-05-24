@@ -18,10 +18,10 @@ static inline int64_t timer_elapsed(prng_timer_t start) {
 }
 #else
 // fall back to nanoseconds, e.g. on aarch64 where __builtin_readcyclecounter
-// needs special privledges not usually granted by the Linux kernel.
+// needs special privileges not usually granted by the Linux kernel.
 // Note that this depends on the CPU frequency.
 // This assumes that clock_gettime is available.
-#include <time.h>
+#  include <time.h>
 
 typedef struct timespec prng_timer_t;
 static const char *unit = "ns/byte";
@@ -53,6 +53,7 @@ static inline int64_t timer_elapsed(prng_timer_t start) {
   return end_ns - start_ns - latency;
 }
 #endif
+
 #define BUFSIZE (1<<17)
 #define SEEDTYPE uint64_t
 #ifndef HEADER

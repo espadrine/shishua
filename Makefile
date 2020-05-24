@@ -1,25 +1,27 @@
 SHELL = bash
-CFLAGS := -O3 -g
-FINGERPRINT := $(shell ./shishua -b 256 | ./fingerprint.sh)
+CFLAGS := -O3 -g -march=native
+FINGERPRINT := $(shell ./shishua -b 256 2>/dev/null | ./fingerprint.sh)
 TARGETS := scalar sse2 ssse3 avx2 neon
 SHISHUAS :=  shishua shishua-half \
              $(addprefix shishua-,$(TARGETS)) \
              $(addprefix shishua-half-,$(TARGETS))
+PRNGS := shishua shishua-half chacha8 xoshiro256plusx8 xoshiro256plus romu wyrand lehmer128 rc4
 # Should match header names (aside from -scalar and -ssse3)
-PRNGS := $(SHISHUAS) chacha8 xoshiro256plusx8 xoshiro256+x8 xoshiro256+ xoshiro256plus romu wyrand lehmer128 rc4
+IMPLS := $(SHISHUAS) chacha8 xoshiro256plusx8 xoshiro256plus romu wyrand lehmer128 rc4
 TESTS := $(addprefix test-,$(TARGETS))
 SSH_KEY = ~/.ssh/id_ed25519
 
-# we need second expansions
+# We need second expansions.
 .SECONDEXPANSION:
 
 ##
-## Target rules
+## Target rules.
 ##
 
-# Replace pseudo target names with the real names
-fix_target = $(subst plus,+,$(subst -scalar,,$(subst -ssse3,-sse2,$(1))))
-$(PRNGS): HEADER = $(call fix_target,$@).h
+# Replace pseudo target names with the real names.
+# The HEADER preproc variable is used in prng.c.
+fix_target = $(subst -scalar,,$(subst -ssse3,-sse2,$(1)))
+$(IMPLS): HEADER = $(call fix_target,$@).h
 $(TESTS): SUFFIX = $(patsubst test%,%.h,$(call fix_target,$@))
 
 # Force SSE2, disable SSE3
@@ -27,18 +29,19 @@ $(TESTS): SUFFIX = $(patsubst test%,%.h,$(call fix_target,$@))
 %-ssse3: CFLAGS += -mssse3
 # -mtune=haswell disables GCC load/store splitting
 %-avx2 chacha8: CFLAGS += -mavx2 -mtune=haswell
+xoshiro256plusx8: CFLAGS += -fdisable-tree-cunrolli
 # force scalar target
 %-scalar: CFLAGS += -DSHISHUA_TARGET=SHISHUA_TARGET_SCALAR
 
 ##
-## Recipes
+## Recipes.
 ##
 default: shishua shishua-half
 
 # e.g. make neon -> make shishua-neon shishua-half-neon
 $(TARGETS): %: shishua-% shishua-half-%
 
-$(PRNGS): $$(HEADER) prng.c
+$(IMPLS): $$(HEADER) prng.c
 	$(CC) $(CFLAGS) -DHEADER='"$(HEADER)"' prng.c -o $@
 
 $(TESTS): test-vectors.c test-vectors.h shishua$$(SUFFIX) shishua-half$$(SUFFIX)
@@ -112,14 +115,13 @@ test/perf-$(FINGERPRINT): shishua
 	@mkdir -p test
 	@echo "Date $$(date)" | tee $@
 	@echo "PRNG fingerprint: $(FINGERPRINT)" | tee -a $@
-	./shishua --bytes 4294967296 2>&1 >/dev/null | tee -a $@
+	./shishua --bytes 4294967296 -q 2>&1 | tee -a $@
 
 test/benchmark-perf: $(PRNGS)
 	@mkdir -p test
 	@echo "Date $$(date)" | tee $@
 	for prng in $(PRNGS); do \
-	  echo "$$prng fingerprint: $$(./$$prng | ./fingerprint.sh)" | tee -a $@; \
-	  ./fix-cpu-freq.sh ./$$prng --bytes 4294967296 2>&1 >/dev/null | tee -a $@; \
+	  ./fix-cpu-freq.sh ./$$prng --bytes 4294967296 -q 2>&1 | tee -a $@; \
 	done
 
 # To reach a consistent benchmark, we need a universally-reproducible system.
@@ -136,30 +138,31 @@ test/benchmark-perf: $(PRNGS)
 benchmark-intel: /usr/bin/gcloud
 	gcloud compute instances create shishua-intel \
 	  --machine-type=n2-standard-2 \
-	  --image-project=ubuntu-os-cloud --image-family=ubuntu-1910 \
+	  --maintenance-policy=TERMINATE \
 	  --zone=us-central1-f \
-	  --maintenance-policy=TERMINATE
+	  --image-project=ubuntu-os-cloud --image-family=ubuntu-2004-lts
 	tar cJf shishua.tar.xz $$(git ls-files)
-	gcloud compute scp ./shishua.tar.xz shishua-intel:~ --ssh-key-file=$(SSH_KEY)
+	while ! gcloud compute ssh shishua-intel --ssh-key-file=$(SSH_KEY) --zone=us-central1-f -- "echo sshd started."; do echo Awaiting sshd…; done
+	gcloud compute scp ./shishua.tar.xz shishua-intel:~ --ssh-key-file=$(SSH_KEY) --zone=us-central1-f
 	rm shishua.tar.xz
-	gcloud compute ssh shishua-intel --ssh-key-file=$(SSH_KEY) -- 'tar xJf shishua.tar.xz && ./gcp-perf.sh'
-	gcloud compute instances delete shishua-intel
+	gcloud compute ssh shishua-intel --ssh-key-file=$(SSH_KEY) --zone=us-central1-f -- 'tar xJf shishua.tar.xz && ./gcp-perf.sh'
+	gcloud compute instances delete shishua-intel --zone=us-central1-f
 
 # We must use us-central1 to have access to N2D, with the new AMD CPUs.
 benchmark-amd: /usr/bin/gcloud
 	gcloud compute instances create shishua-amd \
 	  --machine-type=n2d-standard-2 \
-	  --image-project=ubuntu-os-cloud --image-family=ubuntu-1910 \
+	  --maintenance-policy=TERMINATE \
 	  --zone=us-central1-f \
-	  --maintenance-policy=TERMINATE
+	  --image-project=ubuntu-os-cloud --image-family=ubuntu-2004-lts
 	tar cJf shishua.tar.xz $$(git ls-files)
-	gcloud compute scp ./shishua.tar.xz shishua-amd:~ --ssh-key-file=$(SSH_KEY)
+	while ! gcloud compute ssh shishua-amd --ssh-key-file=$(SSH_KEY) --zone=us-central1-f -- "echo sshd started."; do echo Awaiting sshd…; done
+	gcloud compute scp ./shishua.tar.xz shishua-amd:~ --ssh-key-file=$(SSH_KEY) --zone=us-central1-f
 	rm shishua.tar.xz
-	gcloud compute ssh shishua-amd --ssh-key-file=$(SSH_KEY) -- 'tar xJf shishua.tar.xz && ./gcp-perf.sh'
-	gcloud compute instances delete shishua-amd
+	gcloud compute ssh shishua-amd --ssh-key-file=$(SSH_KEY) --zone=us-central1-f -- 'tar xJf shishua.tar.xz && ./gcp-perf.sh'
+	gcloud compute instances delete shishua-amd --zone=us-central1-f
 
-.PHONY: test benchmark-intel benchmark-amd
 clean:
-	$(RM) -rf $(TESTS) $(PRNGS) intertwine
+	$(RM) -rf $(TESTS) $(IMPLS) intertwine
 
-.PHONY: clean
+.PHONY: test clean benchmark-intel benchmark-amd

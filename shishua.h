@@ -5,6 +5,7 @@
 #define SHISHUA_TARGET_AVX2 1
 #define SHISHUA_TARGET_SSE2 2
 #define SHISHUA_TARGET_NEON 3
+
 #ifndef SHISHUA_TARGET
 #  if defined(__AVX2__) && (defined(__x86_64__) || defined(_M_X64))
 #    define SHISHUA_TARGET SHISHUA_TARGET_AVX2

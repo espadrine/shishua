@@ -155,4 +155,3 @@ prng_state prng_init(SEEDTYPE seed[4]) {
 #undef SHISHUA_RESTRICT
 
 #endif
-
