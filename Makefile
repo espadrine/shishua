@@ -28,7 +28,7 @@ $(TESTS): SUFFIX = $(patsubst test%,%.h,$(call fix_target,$@))
 %-sse2: CFLAGS += -msse2 -mno-sse3 -mno-ssse3
 %-ssse3: CFLAGS += -mssse3
 # -mtune=haswell disables GCC load/store splitting
-%-avx2 chacha8: CFLAGS += -mavx2 -mtune=haswell
+%-avx2: CFLAGS += -mavx2 -mtune=haswell
 xoshiro256plusx8: CFLAGS += -fdisable-tree-cunrolli
 # force scalar target
 %-scalar: CFLAGS += -DSHISHUA_TARGET=SHISHUA_TARGET_SCALAR
@@ -135,6 +135,13 @@ test/benchmark-perf: $(PRNGS)
 	sudo apt-get update && sudo apt-get install google-cloud-sdk
 	gcloud init
 
+# Installation instructions for Scaleway CLI (for ARM servers)
+# available here: https://github.com/scaleway/scaleway-cli#linux
+/usr/local/bin/scw:
+	sudo curl -o /usr/local/bin/scw -L "https://github.com/scaleway/scaleway-cli/releases/download/v2.2.3/scw-2.2.3-linux-x86_64"
+	sudo chmod +x /usr/local/bin/scw
+	scw init
+
 benchmark-intel: /usr/bin/gcloud
 	gcloud compute instances create shishua-intel \
 	  --machine-type=n2-standard-2 \
@@ -142,7 +149,7 @@ benchmark-intel: /usr/bin/gcloud
 	  --zone=us-central1-f \
 	  --image-project=ubuntu-os-cloud --image-family=ubuntu-2004-lts
 	tar cJf shishua.tar.xz $$(git ls-files)
-	while ! gcloud compute ssh shishua-intel --ssh-key-file=$(SSH_KEY) --zone=us-central1-f -- "echo sshd started."; do echo Awaiting sshd…; done
+	while ! gcloud compute ssh shishua-intel --ssh-key-file=$(SSH_KEY) --zone=us-central1-f -- 'echo sshd started.'; do echo Awaiting sshd…; done
 	gcloud compute scp ./shishua.tar.xz shishua-intel:~ --ssh-key-file=$(SSH_KEY) --zone=us-central1-f
 	rm shishua.tar.xz
 	gcloud compute ssh shishua-intel --ssh-key-file=$(SSH_KEY) --zone=us-central1-f -- 'tar xJf shishua.tar.xz && ./gcp-perf.sh'
@@ -156,13 +163,28 @@ benchmark-amd: /usr/bin/gcloud
 	  --zone=us-central1-f \
 	  --image-project=ubuntu-os-cloud --image-family=ubuntu-2004-lts
 	tar cJf shishua.tar.xz $$(git ls-files)
-	while ! gcloud compute ssh shishua-amd --ssh-key-file=$(SSH_KEY) --zone=us-central1-f -- "echo sshd started."; do echo Awaiting sshd…; done
+	while ! gcloud compute ssh shishua-amd --ssh-key-file=$(SSH_KEY) --zone=us-central1-f -- 'echo sshd started.'; do echo Awaiting sshd…; done
 	gcloud compute scp ./shishua.tar.xz shishua-amd:~ --ssh-key-file=$(SSH_KEY) --zone=us-central1-f
 	rm shishua.tar.xz
 	gcloud compute ssh shishua-amd --ssh-key-file=$(SSH_KEY) --zone=us-central1-f -- 'tar xJf shishua.tar.xz && ./gcp-perf.sh'
 	gcloud compute instances delete shishua-amd --zone=us-central1-f
 
+benchmark-arm: /usr/local/bin/scw
+	@set -x; srvconf=$$(scw instance server create name=shishua-arm type=C1 stopped=true boot-type=bootscript image=ubuntu_bionic zone=fr-par-1); \
+	srvid=$$(echo "$$srvconf" | grep '^ID' | awk '{print $$2}'); \
+	srvip=$$(echo "$$srvconf" | grep '^PublicIP.Address' | awk '{print $$2}'); \
+	scw instance server start "$$srvid" --wait; \
+	tar cJf shishua.tar.xz $$(git ls-files); \
+	while ! scw instance server ssh "$$srvid" command='echo sshd started.' zone=fr-par-1; \
+	  do echo Awaiting sshd…; sleep 5; \
+	done; \
+	scp -i $(SSH_KEY) ./shishua.tar.xz root@"$$srvip:~"; \
+	scw instance server ssh "$$srvid" command='tar xJf shishua.tar.xz && ./scw-perf.sh' zone=fr-par-1; \
+	echo Deleting ARM server…; \
+	scw instance server terminate "$$srvid" zone=fr-par-1 with-block with-ip
+	rm shishua.tar.xz
+
 clean:
 	$(RM) -rf $(TESTS) $(IMPLS) intertwine
 
-.PHONY: test clean benchmark-intel benchmark-amd
+.PHONY: test clean benchmark-intel benchmark-amd benchmark-arm
