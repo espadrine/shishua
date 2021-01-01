@@ -1,0 +1,47 @@
+#!/bin/bash
+set -x
+
+# Setting things up.
+
+aws ec2 create-key-pair --key-name aws-shishua-key \
+  --query "KeyMaterial" --output text >aws-shishua-key.pem
+chmod 400 aws-shishua-key.pem
+aws ec2 create-security-group --group-name aws-shishua-sg \
+  --description 'SHISHUA benchmark'
+aws ec2 authorize-security-group-ingress --group-name aws-shishua-sg \
+  --protocol tcp --port 22 \
+  --cidr "$(curl https://checkip.amazonaws.com)"/32
+
+# Creating the server.
+
+srvconf="$(aws ec2 run-instances --image-id ami-0489277f0e9a94f8d \
+  --key-name aws-shishua-key --security-groups aws-shishua-sg \
+  --instance-type t4g.micro --region eu-central-1)"
+srvid="$(echo "$srvconf" | jq -r '.Instances[0].InstanceId')"
+tar cJf shishua.tar.xz $(git ls-files)
+while [[ $(aws ec2 describe-instance-status --instance-ids "$srvid" \
+    | jq -r '.InstanceStatuses[0].InstanceState.Name') != running ]] 2>/dev/null; do
+  echo Awaiting IP address…
+  sleep 5
+done
+srvdns="$(aws ec2 describe-instances --instance-ids "$srvid" \
+  | jq -r '.Reservations[0].Instances[0].PublicDnsName')"
+while ! ssh -i aws-shishua-key.pem "ubuntu@$srvdns" 'echo sshd started.' 2>/dev/null; do
+  echo Awaiting sshd…
+  sleep 5
+done
+
+# Run benchmark.
+
+scp -i aws-shishua-key.pem ./shishua.tar.xz "ubuntu@$srvdns:~"
+ssh -i aws-shishua-key.pem "ubuntu@$srvdns" 'tar xJf shishua.tar.xz && ./bin/aws-perf.sh'
+
+# Cleaning up.
+
+aws ec2 terminate-instances --instance-ids "$srvid"
+aws ec2 delete-key-pair --key-name aws-shishua-key
+while ! aws ec2 delete-security-group --group-name aws-shishua-sg 2>/dev/null; do
+  echo Awaiting server termination…
+  sleep 10
+done
+rm -f shishua.tar.xz aws-shishua-key.pem

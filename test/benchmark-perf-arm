@@ -1,0 +1,10 @@
+Date Fri Jan  1 02:38:09 UTC 2021
+shishua.h: 0.068905 ns/byte
+shishua-half.h: 0.124125 ns/byte
+chacha8.h: 0.585860 ns/byte
+xoshiro256plusx8.h: 0.133949 ns/byte
+xoshiro256plus.h: 0.183573 ns/byte
+romu.h: 0.219480 ns/byte
+wyrand.h: 0.350262 ns/byte
+lehmer128.h: 0.650486 ns/byte
+rc4.h: 7.710751 ns/byte

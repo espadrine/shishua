@@ -1,5 +1,5 @@
-SHELL = bash
-CFLAGS := -O3 -g -march=native
+SHELL := bash
+CFLAGS := -O3 -g
 FINGERPRINT := $(shell ./shishua -b 256 2>/dev/null | ./fingerprint.sh)
 TARGETS := scalar sse2 ssse3 avx2 neon
 SHISHUAS :=  shishua shishua-half \
@@ -7,9 +7,8 @@ SHISHUAS :=  shishua shishua-half \
              $(addprefix shishua-half-,$(TARGETS))
 PRNGS := shishua shishua-half chacha8 xoshiro256plusx8 xoshiro256plus romu wyrand lehmer128 rc4
 # Should match header names (aside from -scalar and -ssse3)
-IMPLS := $(SHISHUAS) chacha8 xoshiro256plusx8 xoshiro256plus romu wyrand lehmer128 rc4
+IMPLS := $(SHISHUAS) chacha8 chacha8-avx2 chacha8-neon xoshiro256plusx8 xoshiro256plus romu wyrand lehmer128 rc4
 TESTS := $(addprefix test-,$(TARGETS))
-SSH_KEY = ~/.ssh/id_ed25519
 
 # We need second expansions.
 .SECONDEXPANSION:
@@ -22,6 +21,8 @@ SSH_KEY = ~/.ssh/id_ed25519
 # The HEADER preproc variable is used in prng.c.
 fix_target = $(subst -scalar,,$(subst -ssse3,-sse2,$(1)))
 $(IMPLS): HEADER = $(call fix_target,$@).h
+# HEADERS ensures modifications on -neon.h etc. cause recompiles.
+$(PRNGS): HEADERS = $(call fix_target,$@)*.h
 $(TESTS): SUFFIX = $(patsubst test%,%.h,$(call fix_target,$@))
 
 # Force SSE2, disable SSE3
@@ -29,9 +30,15 @@ $(TESTS): SUFFIX = $(patsubst test%,%.h,$(call fix_target,$@))
 %-ssse3: CFLAGS += -mssse3
 # -mtune=haswell disables GCC load/store splitting
 %-avx2: CFLAGS += -mavx2 -mtune=haswell
-xoshiro256plusx8: CFLAGS += -fdisable-tree-cunrolli
 # force scalar target
 %-scalar: CFLAGS += -DSHISHUA_TARGET=SHISHUA_TARGET_SCALAR
+
+ifeq ($(shell $(CC) -v 2>&1 | tail -1 | grep -o gcc),gcc)
+  xoshiro256plusx8: CFLAGS += -fdisable-tree-cunrolli
+  CFLAGS += -march=native
+else
+  CFLAGS += -mcpu=native
+endif
 
 ##
 ## Recipes.
@@ -41,7 +48,7 @@ default: shishua shishua-half
 # e.g. make neon -> make shishua-neon shishua-half-neon
 $(TARGETS): %: shishua-% shishua-half-%
 
-$(IMPLS): $$(HEADER) prng.c
+$(IMPLS): $$(HEADER) $$(HEADERS) prng.c
 	$(CC) $(CFLAGS) -DHEADER='"$(HEADER)"' prng.c -o $@
 
 $(TESTS): test-vectors.c test-vectors.h shishua$$(SUFFIX) shishua-half$$(SUFFIX)
@@ -135,7 +142,16 @@ test/benchmark-perf: $(PRNGS)
 	sudo apt-get update && sudo apt-get install google-cloud-sdk
 	gcloud init
 
-# Installation instructions for Scaleway CLI (for ARM servers)
+# Installation instructions for Amazon Web Services CLI (for ARM servers with NEON)
+# available here: https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html
+/usr/local/bin/aws:
+	curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+	unzip awscliv2.zip
+	sudo ./aws/install
+	rm -r awscliv2.zip aws
+	aws configure
+
+# Installation instructions for Scaleway CLI (for ARM servers without NEON)
 # available here: https://github.com/scaleway/scaleway-cli#linux
 /usr/local/bin/scw:
 	sudo curl -o /usr/local/bin/scw -L "https://github.com/scaleway/scaleway-cli/releases/download/v2.2.3/scw-2.2.3-linux-x86_64"
@@ -143,48 +159,19 @@ test/benchmark-perf: $(PRNGS)
 	scw init
 
 benchmark-intel: /usr/bin/gcloud
-	gcloud compute instances create shishua-intel \
-	  --machine-type=n2-standard-2 \
-	  --maintenance-policy=TERMINATE \
-	  --zone=us-central1-f \
-	  --image-project=ubuntu-os-cloud --image-family=ubuntu-2004-lts
-	tar cJf shishua.tar.xz $$(git ls-files)
-	while ! gcloud compute ssh shishua-intel --ssh-key-file=$(SSH_KEY) --zone=us-central1-f -- 'echo sshd started.'; do echo Awaiting sshd…; done
-	gcloud compute scp ./shishua.tar.xz shishua-intel:~ --ssh-key-file=$(SSH_KEY) --zone=us-central1-f
-	rm shishua.tar.xz
-	gcloud compute ssh shishua-intel --ssh-key-file=$(SSH_KEY) --zone=us-central1-f -- 'tar xJf shishua.tar.xz && ./gcp-perf.sh'
-	gcloud compute instances delete shishua-intel --zone=us-central1-f
+	./bin/benchmark-intel
 
 # We must use us-central1 to have access to N2D, with the new AMD CPUs.
 benchmark-amd: /usr/bin/gcloud
-	gcloud compute instances create shishua-amd \
-	  --machine-type=n2d-standard-2 \
-	  --maintenance-policy=TERMINATE \
-	  --zone=us-central1-f \
-	  --image-project=ubuntu-os-cloud --image-family=ubuntu-2004-lts
-	tar cJf shishua.tar.xz $$(git ls-files)
-	while ! gcloud compute ssh shishua-amd --ssh-key-file=$(SSH_KEY) --zone=us-central1-f -- 'echo sshd started.'; do echo Awaiting sshd…; done
-	gcloud compute scp ./shishua.tar.xz shishua-amd:~ --ssh-key-file=$(SSH_KEY) --zone=us-central1-f
-	rm shishua.tar.xz
-	gcloud compute ssh shishua-amd --ssh-key-file=$(SSH_KEY) --zone=us-central1-f -- 'tar xJf shishua.tar.xz && ./gcp-perf.sh'
-	gcloud compute instances delete shishua-amd --zone=us-central1-f
+	./bin/benchmark-amd
 
-benchmark-arm: /usr/local/bin/scw
-	@set -x; srvconf=$$(scw instance server create name=shishua-arm type=C1 stopped=true boot-type=bootscript image=ubuntu_bionic zone=fr-par-1); \
-	srvid=$$(echo "$$srvconf" | grep '^ID' | awk '{print $$2}'); \
-	srvip=$$(echo "$$srvconf" | grep '^PublicIP.Address' | awk '{print $$2}'); \
-	scw instance server start "$$srvid" --wait; \
-	tar cJf shishua.tar.xz $$(git ls-files); \
-	while ! scw instance server ssh "$$srvid" command='echo sshd started.' zone=fr-par-1; \
-	  do echo Awaiting sshd…; sleep 5; \
-	done; \
-	scp -i $(SSH_KEY) ./shishua.tar.xz root@"$$srvip:~"; \
-	scw instance server ssh "$$srvid" command='tar xJf shishua.tar.xz && ./scw-perf.sh' zone=fr-par-1; \
-	echo Deleting ARM server…; \
-	scw instance server terminate "$$srvid" zone=fr-par-1 with-block with-ip
-	rm shishua.tar.xz
+benchmark-arm: /usr/local/bin/aws
+	./bin/benchmark-arm
+
+benchmark-arm-without-neon: /usr/local/bin/scw
+	./bin/benchmark-arm-without-neon
 
 clean:
 	$(RM) -rf $(TESTS) $(IMPLS) intertwine
 
-.PHONY: test clean benchmark-intel benchmark-amd benchmark-arm
+.PHONY: test clean benchmark-intel benchmark-amd benchmark-arm benchmark-arm-without-neon

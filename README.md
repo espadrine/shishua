@@ -48,6 +48,7 @@ highlights additional anomalies:
 - `make test/benchmark-perf`: run performance comparison locally.
 - `make benchmark-intel`: run performance comparison on a GCP Intel chip.
 - `make benchmark-amd`: run performance comparison on a GCP AMD chip.
+- `make benchmark-arm`: run performance comparison on an AWS Graviton ARM chip.
 
 ---
 

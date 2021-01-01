@@ -42,23 +42,23 @@ static inline void prng_gen(prng_state *s, uint8_t out[], size_t bytes) {
 
   if (!bytes || bytes < 256) { return; }
 
-  u32 in12, in13;
-  uint32x4_t x_0 = vdupq_n_u32(x[0]);
-  uint32x4_t x_1 = vdupq_n_u32(x[1]);
-  uint32x4_t x_2 = vdupq_n_u32(x[2]);
-  uint32x4_t x_3 = vdupq_n_u32(x[3]);
-  uint32x4_t x_4 = vdupq_n_u32(x[4]);
-  uint32x4_t x_5 = vdupq_n_u32(x[5]);
-  uint32x4_t x_6 = vdupq_n_u32(x[6]);
-  uint32x4_t x_7 = vdupq_n_u32(x[7]);
-  uint32x4_t x_8 = vdupq_n_u32(x[8]);
-  uint32x4_t x_9 = vdupq_n_u32(x[9]);
-  uint32x4_t x_10 = vdupq_n_u32(x[10]);
-  uint32x4_t x_11 = vdupq_n_u32(x[11]);
-  uint32x4_t x_12;// = vdupq_n_u32(x[12]); /* useless */
-  uint32x4_t x_13;// = vdupq_n_u32(x[13]); /* useless */
-  uint32x4_t x_14 = vdupq_n_u32(x[14]);
-  uint32x4_t x_15 = vdupq_n_u32(x[15]);
+  uint32_t in12, in13;
+  uint32x4_t x_0 = vdupq_n_u32(s->state[0]);
+  uint32x4_t x_1 = vdupq_n_u32(s->state[1]);
+  uint32x4_t x_2 = vdupq_n_u32(s->state[2]);
+  uint32x4_t x_3 = vdupq_n_u32(s->state[3]);
+  uint32x4_t x_4 = vdupq_n_u32(s->state[4]);
+  uint32x4_t x_5 = vdupq_n_u32(s->state[5]);
+  uint32x4_t x_6 = vdupq_n_u32(s->state[6]);
+  uint32x4_t x_7 = vdupq_n_u32(s->state[7]);
+  uint32x4_t x_8 = vdupq_n_u32(s->state[8]);
+  uint32x4_t x_9 = vdupq_n_u32(s->state[9]);
+  uint32x4_t x_10 = vdupq_n_u32(s->state[10]);
+  uint32x4_t x_11 = vdupq_n_u32(s->state[11]);
+  uint32x4_t x_12;// = vdupq_n_u32(s->state[12]); /* useless */
+  uint32x4_t x_13;// = vdupq_n_u32(s->state[13]); /* useless */
+  uint32x4_t x_14 = vdupq_n_u32(s->state[14]);
+  uint32x4_t x_15 = vdupq_n_u32(s->state[15]);
   uint32x4_t orig0 = x_0;
   uint32x4_t orig1 = x_1;
   uint32x4_t orig2 = x_2;
@@ -115,9 +115,9 @@ static inline void prng_gen(prng_state *s, uint8_t out[], size_t bytes) {
     const uint64x2_t addv12 = vcombine_u64(vcreate_u64(2),vcreate_u64(3));
     const uint64x2_t addv13 = vcombine_u64(vcreate_u64(0),vcreate_u64(1));
     uint64x2_t t12, t13;
-    in12 = x[12];
-    in13 = x[13];
-    u64 in1213 = ((u64)in12) | (((u64)in13) << 32);
+    in12 = s->state[12];
+    in13 = s->state[13];
+    uint64_t in1213 = ((uint64_t)in12) | (((uint64_t)in13) << 32);
     t12 = vdupq_n_u64(in1213);
     t13 = vdupq_n_u64(in1213);
 
@@ -134,8 +134,8 @@ static inline void prng_gen(prng_state *s, uint8_t out[], size_t bytes) {
 
     in1213 += 4;
 
-    x[12] = in1213 & 0xFFFFFFFF;
-    x[13] = (in1213>>32)&0xFFFFFFFF;
+    s->state[12] = in1213 & 0xFFFFFFFF;
+    s->state[13] = (in1213>>32)&0xFFFFFFFF;
 
     for (i = 0 ; i < ROUNDS ; i+=2) {
       VEC4_QUARTERROUND( 0, 4, 8,12);
@@ -151,7 +151,6 @@ static inline void prng_gen(prng_state *s, uint8_t out[], size_t bytes) {
 #define ONEQUAD_TRANSPOSE(a,b,c,d)                                      \
     {                                                                   \
       uint32x4x2_t t0dq, t1dq;                                          \
-      uint32x4_t t0, t1, t2, t3;                                        \
       x_##a = vaddq_u32(x_##a, orig##a);                                \
       x_##b = vaddq_u32(x_##b, orig##b);                                \
       x_##c = vaddq_u32(x_##c, orig##c);                                \
@@ -162,29 +161,21 @@ static inline void prng_gen(prng_state *s, uint8_t out[], size_t bytes) {
       x_##b = vreinterpretq_u32_u64(vcombine_u64(vget_low_u64(vreinterpretq_u64_u32(t0dq.val[1])), vget_low_u64(vreinterpretq_u64_u32(t1dq.val[1])))); \
       x_##c = vreinterpretq_u32_u64(vcombine_u64(vget_high_u64(vreinterpretq_u64_u32(t0dq.val[0])), vget_high_u64(vreinterpretq_u64_u32(t1dq.val[0])))); \
       x_##d = vreinterpretq_u32_u64(vcombine_u64(vget_high_u64(vreinterpretq_u64_u32(t0dq.val[1])), vget_high_u64(vreinterpretq_u64_u32(t1dq.val[1])))); \
-      t0 = veorq_u32(x_##a, vld1q_u32((uint32_t*)(m+0)));             \
-      vst1q_u32((uint32_t*)(out+0),t0);                               \
-      t1 = veorq_u32(x_##b, vld1q_u32((uint32_t*)(m+64)));            \
-      vst1q_u32((uint32_t*)(out+64),t1);                              \
-      t2 = veorq_u32(x_##c, vld1q_u32((uint32_t*)(m+128)));           \
-      vst1q_u32((uint32_t*)(out+128),t2);                             \
-      t3 = veorq_u32(x_##d, vld1q_u32((uint32_t*)(m+192)));           \
-      vst1q_u32((uint32_t*)(out+192),t3);                             \
+      vst1q_u32((uint32_t*)(out+0),x_##a);                              \
+      vst1q_u32((uint32_t*)(out+64),x_##b);                             \
+      vst1q_u32((uint32_t*)(out+128),x_##c);                            \
+      vst1q_u32((uint32_t*)(out+192),x_##d);                            \
     }
 
 #define ONEQUAD(a,b,c,d) ONEQUAD_TRANSPOSE(a,b,c,d)
 
     ONEQUAD(0,1,2,3);
-    m+=16;
     out+=16;
     ONEQUAD(4,5,6,7);
-    m+=16;
     out+=16;
     ONEQUAD(8,9,10,11);
-    m+=16;
     out+=16;
     ONEQUAD(12,13,14,15);
-    m-=48;
     out-=48;
 
 #undef ONEQUAD
@@ -192,7 +183,6 @@ static inline void prng_gen(prng_state *s, uint8_t out[], size_t bytes) {
 
     bytes -= 256;
     out += 256;
-    m += 256;
   }
 }
 #undef VEC4_ROT

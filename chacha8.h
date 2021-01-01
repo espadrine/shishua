@@ -8,7 +8,7 @@
 #ifndef CHACHA8_TARGET
 #  if defined(__AVX2__) && (defined(__x86_64__) || defined(_M_X64))
 #    define CHACHA8_TARGET CHACHA8_TARGET_AVX2
-#  elif (defined(__ARM_NEON) || defined(__ARM_NEON__)) && defined(__clang__)
+#  elif (defined(__ARM_NEON) || defined(__ARM_NEON__))
 #    define CHACHA8_TARGET CHACHA8_TARGET_NEON
 #  else
 #    define CHACHA8_TARGET CHACHA8_TARGET_SCALAR

@@ -1,0 +1,29 @@
+#!/bin/bash
+set -x
+SSH_KEY=~/.ssh/id_ed25519
+
+# Set things up.
+
+srvconf=$(scw instance server create name=shishua-arm type=C1
+  stopped=true boot-type=bootscript image=ubuntu_bionic zone=fr-par-1)
+srvid=$(echo "$srvconf" | grep '^ID' | awk '{print $2}')
+srvip=$(echo "$srvconf" | grep '^PublicIP.Address' | awk '{print $2}')
+
+# Create server.
+
+scw instance server start "$srvid" --wait
+tar cJf shishua.tar.xz $(git ls-files)
+while ! scw instance server ssh "$srvid" command='echo sshd started.' zone=fr-par-1; do
+  echo Awaiting sshd…
+  sleep 5
+done
+
+# Run benchmark.
+
+scp -i $SSH_KEY ./shishua.tar.xz root@"$srvip:~"
+scw instance server ssh "$srvid" command='tar xJf shishua.tar.xz && ./bin/aws-perf.sh' zone=fr-par-1
+
+# Cleaning up.
+
+scw instance server terminate "$srvid" zone=fr-par-1 with-block with-ip
+rm shishua.tar.xz
