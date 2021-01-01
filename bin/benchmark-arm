@@ -1,4 +1,6 @@
 #!/bin/bash
+DIR="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
+cd "$DIR/.."
 set -x
 
 # Setting things up.
@@ -22,19 +24,19 @@ tar cJf shishua.tar.xz $(git ls-files)
 while [[ $(aws ec2 describe-instance-status --instance-ids "$srvid" \
     | jq -r '.InstanceStatuses[0].InstanceState.Name') != running ]] 2>/dev/null; do
   echo Awaiting IP address…
-  sleep 5
+  sleep 10
 done
 srvdns="$(aws ec2 describe-instances --instance-ids "$srvid" \
   | jq -r '.Reservations[0].Instances[0].PublicDnsName')"
-while ! ssh -i aws-shishua-key.pem "ubuntu@$srvdns" 'echo sshd started.' 2>/dev/null; do
+while ! ssh -i aws-shishua-key.pem "ubuntu@$srvdns" 'echo sshd started.'; do
   echo Awaiting sshd…
-  sleep 5
+  sleep 10
 done
 
 # Run benchmark.
 
 scp -i aws-shishua-key.pem ./shishua.tar.xz "ubuntu@$srvdns:~"
-ssh -i aws-shishua-key.pem "ubuntu@$srvdns" 'tar xJf shishua.tar.xz && ./bin/aws-perf.sh'
+ssh -i aws-shishua-key.pem "ubuntu@$srvdns" 'tar xJf shishua.tar.xz && ./bin/perf-cloud-ubuntu-clang.sh'
 
 # Cleaning up.
 

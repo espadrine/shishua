@@ -1,6 +1,6 @@
 SHELL := bash
 CFLAGS := -O3 -g
-FINGERPRINT := $(shell ./shishua -b 256 2>/dev/null | ./fingerprint.sh)
+FINGERPRINT := $(shell ./shishua -b 256 2>/dev/null | ./bin/fingerprint.sh)
 TARGETS := scalar sse2 ssse3 avx2 neon
 SHISHUAS :=  shishua shishua-half \
              $(addprefix shishua-,$(TARGETS)) \
@@ -104,7 +104,7 @@ test/benchmark-seed: $(PRNGS) intertwine
 	@mkdir -p test
 	@echo "Date $$(date)" | tee $@
 	for prng in $(PRNGS); do \
-	  echo "$$prng fingerprint: $$(./$$prng | ./fingerprint.sh)" | tee -a $@; \
+	  echo "$$prng fingerprint: $$(./$$prng | ./bin/fingerprint.sh)" | tee -a $@; \
 	  ./intertwine <(./$$prng -s 1) <(./$$prng -s 2) \
 	               <(./$$prng -s 4) <(./$$prng -s 8) \
 	               <(./$$prng -s 10) <(./$$prng -s 20) \
@@ -128,8 +128,10 @@ test/benchmark-perf: $(PRNGS)
 	@mkdir -p test
 	@echo "Date $$(date)" | tee $@
 	for prng in $(PRNGS); do \
-	  ./fix-cpu-freq.sh ./$$prng --bytes 4294967296 -q 2>&1 | tee -a $@; \
+	  ./bin/fix-cpu-freq.sh ./$$prng --bytes 10000000000 -q 2>&1 | tee -a $@; \
 	done
+	@echo | tee -a $@
+	@lscpu | tee -a $@
 
 # To reach a consistent benchmark, we need a universally-reproducible system.
 # GCP will do.
@@ -161,7 +163,6 @@ test/benchmark-perf: $(PRNGS)
 benchmark-intel: /usr/bin/gcloud
 	./bin/benchmark-intel
 
-# We must use us-central1 to have access to N2D, with the new AMD CPUs.
 benchmark-amd: /usr/bin/gcloud
 	./bin/benchmark-amd
 

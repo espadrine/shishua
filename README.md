@@ -34,7 +34,7 @@ Implementations:
    with seeds 1, 2, 4, 8, 16, 32, 64, 128.
    We use PractRand with folding 2 and expanded tests.
 
-On the subject of seed correlations, the `./sample-seed-fingerprints.sh` program
+On the subject of seed correlations, the `./bin/sample-seed-fingerprints.sh` program
 highlights additional anomalies:
 
 - RC4 has weak seeds with heavy artefacts visible in the fingerprints.

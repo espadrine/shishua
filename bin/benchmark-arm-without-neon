@@ -1,4 +1,6 @@
 #!/bin/bash
+DIR="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
+cd "$DIR/.."
 set -x
 SSH_KEY=~/.ssh/id_ed25519
 
@@ -15,13 +17,13 @@ scw instance server start "$srvid" --wait
 tar cJf shishua.tar.xz $(git ls-files)
 while ! scw instance server ssh "$srvid" command='echo sshd started.' zone=fr-par-1; do
   echo Awaiting sshd…
-  sleep 5
+  sleep 10
 done
 
 # Run benchmark.
 
 scp -i $SSH_KEY ./shishua.tar.xz root@"$srvip:~"
-scw instance server ssh "$srvid" command='tar xJf shishua.tar.xz && ./bin/aws-perf.sh' zone=fr-par-1
+scw instance server ssh "$srvid" command='tar xJf shishua.tar.xz && ./bin/perf-cloud-ubuntu-clang.sh' zone=fr-par-1
 
 # Cleaning up.
 

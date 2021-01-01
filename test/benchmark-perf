@@ -1,10 +1,46 @@
-Date Tue Dec 29 01:47:08 CET 2020
-shishua.h: 0.055572 cpb
-shishua-half.h: 0.109657 cpb
-chacha8.h: 0.371638 cpb
-xoshiro256plusx8.h: 0.075683 cpb
-xoshiro256plus.h: 0.296829 cpb
-romu.h: 0.241486 cpb
-wyrand.h: 0.342486 cpb
-lehmer128.h: 0.394092 cpb
-rc4.h: 5.879656 cpb
+Date Fri Jan  1 21:30:12 CET 2021
+shishua.h: 0.049747 cpb
+shishua-half.h: 0.094580 cpb
+chacha8.h: 0.342001 cpb
+xoshiro256plusx8.h: 0.069145 cpb
+xoshiro256plus.h: 0.251135 cpb
+romu.h: 0.229447 cpb
+wyrand.h: 0.343012 cpb
+lehmer128.h: 0.378924 cpb
+rc4.h: 5.704825 cpb
+
+Architecture:                    x86_64
+CPU op-mode(s):                  32-bit, 64-bit
+Byte Order:                      Little Endian
+Address sizes:                   39 bits physical, 48 bits virtual
+CPU(s):                          8
+On-line CPU(s) list:             0-7
+Thread(s) per core:              2
+Core(s) per socket:              4
+Socket(s):                       1
+NUMA node(s):                    1
+Vendor ID:                       GenuineIntel
+CPU family:                      6
+Model:                           142
+Model name:                      Intel(R) Core(TM) i5-8350U CPU @ 1.70GHz
+Stepping:                        10
+CPU MHz:                         3015.701
+CPU max MHz:                     3600,0000
+CPU min MHz:                     400,0000
+BogoMIPS:                        3799.90
+Virtualization:                  VT-x
+L1d cache:                       128 KiB
+L1i cache:                       128 KiB
+L2 cache:                        1 MiB
+L3 cache:                        6 MiB
+NUMA node0 CPU(s):               0-7
+Vulnerability Itlb multihit:     KVM: Mitigation: Split huge pages
+Vulnerability L1tf:              Mitigation; PTE Inversion; VMX conditional cache flushes, SMT vulnerable
+Vulnerability Mds:               Mitigation; Clear CPU buffers; SMT vulnerable
+Vulnerability Meltdown:          Mitigation; PTI
+Vulnerability Spec store bypass: Mitigation; Speculative Store Bypass disabled via prctl and seccomp
+Vulnerability Spectre v1:        Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:        Mitigation; Full generic retpoline, IBPB conditional, IBRS_FW, STIBP conditional, RSB filling
+Vulnerability Srbds:             Mitigation; Microcode
+Vulnerability Tsx async abort:   Mitigation; Clear CPU buffers; SMT vulnerable
+Flags:                           fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb invpcid_single pti ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp md_clear flush_l1d
