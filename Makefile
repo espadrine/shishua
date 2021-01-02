@@ -160,19 +160,19 @@ test/benchmark-perf: $(PRNGS)
 	sudo chmod +x /usr/local/bin/scw
 	scw init
 
-benchmark-intel: /usr/bin/gcloud
+test/benchmark-perf-intel: /usr/bin/gcloud
 	./bin/benchmark-intel
 
-benchmark-amd: /usr/bin/gcloud
+test/benchmark-perf-amd: /usr/bin/gcloud
 	./bin/benchmark-amd
 
-benchmark-arm: /usr/local/bin/aws
+test/benchmark-perf-arm: /usr/local/bin/aws
 	./bin/benchmark-arm
 
-benchmark-arm-without-neon: /usr/local/bin/scw
+test/benchmark-perf-arm-without-neon: /usr/local/bin/scw
 	./bin/benchmark-arm-without-neon
 
 clean:
 	$(RM) -rf $(TESTS) $(IMPLS) intertwine
 
-.PHONY: test clean benchmark-intel benchmark-amd benchmark-arm benchmark-arm-without-neon
+.PHONY: test clean

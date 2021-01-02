@@ -12,7 +12,7 @@ gcloud compute instances create shishua-intel \
   --zone=us-central1-f \
   --image-project=ubuntu-os-cloud --image-family=ubuntu-2004-lts
 tar cJf shishua.tar.xz $(git ls-files)
-while ! gcloud compute ssh shishua-intel --ssh-key-file=$SSH_KEY \
+while ! gcloud compute ssh shishua-intel --ssh-key-file="$SSH_KEY" \
     --zone=us-central1-f -- 'echo sshd started.'; do
   echo Awaiting sshd…
   sleep 10
@@ -20,8 +20,9 @@ done
 
 # Run benchmark
 
-gcloud compute scp ./shishua.tar.xz shishua-intel:~ --ssh-key-file=$SSH_KEY --zone=us-central1-f
-gcloud compute ssh shishua-intel --ssh-key-file=$SSH_KEY --zone=us-central1-f -- 'tar xJf shishua.tar.xz && ./bin/perf-cloud-ubuntu-gcc.sh'
+gcloud compute scp ./shishua.tar.xz shishua-intel:~ --ssh-key-file="$SSH_KEY" --zone=us-central1-f
+gcloud compute ssh shishua-intel --ssh-key-file="$SSH_KEY" --zone=us-central1-f -- 'tar xJf shishua.tar.xz && ./bin/perf-cloud-ubuntu-gcc.sh'
+gcloud compute scp shishua-intel:~/test/benchmark-perf test/benchmark-perf-intel --ssh-key-file="$SSH_KEY" --zone=us-central1-f
 
 # Clean up.
 

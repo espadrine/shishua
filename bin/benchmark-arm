@@ -37,6 +37,7 @@ done
 
 scp -i aws-shishua-key.pem ./shishua.tar.xz "ubuntu@$srvdns:~"
 ssh -i aws-shishua-key.pem "ubuntu@$srvdns" 'tar xJf shishua.tar.xz && ./bin/perf-cloud-ubuntu-clang.sh'
+scp -i aws-shishua-key.pem "ubuntu@$srvdns:~/test/benchmark-perf" test/benchmark-perf-arm
 
 # Cleaning up.
 
