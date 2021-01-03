@@ -1,10 +1,40 @@
-Date Fri Jan  1 02:38:09 UTC 2021
-shishua.h: 0.068905 ns/byte
-shishua-half.h: 0.124125 ns/byte
-chacha8.h: 0.585860 ns/byte
-xoshiro256plusx8.h: 0.133949 ns/byte
-xoshiro256plus.h: 0.183573 ns/byte
-romu.h: 0.219480 ns/byte
-wyrand.h: 0.350262 ns/byte
-lehmer128.h: 0.650486 ns/byte
-rc4.h: 7.710751 ns/byte
+Date Fri Jan  1 22:26:27 UTC 2021
+shishua.h           	0.068883 ns/byte	8.78 GB/s
+shishua-half.h      	0.128504 ns/byte	5.77 GB/s
+chacha8.h           	0.537421 ns/byte	1.72 GB/s
+xoshiro256plusx8.h  	0.226254 ns/byte	3.69 GB/s
+xoshiro256plus.h    	0.187308 ns/byte	4.31 GB/s
+romu.h              	0.165304 ns/byte	4.76 GB/s
+wyrand.h            	0.350962 ns/byte	2.53 GB/s
+lehmer128.h         	0.501034 ns/byte	1.83 GB/s
+rc4.h               	6.793951 ns/byte	0.15 GB/s
+
+Architecture:                    aarch64
+CPU op-mode(s):                  32-bit, 64-bit
+Byte Order:                      Little Endian
+CPU(s):                          2
+On-line CPU(s) list:             0,1
+Thread(s) per core:              1
+Core(s) per socket:              2
+Socket(s):                       1
+NUMA node(s):                    1
+Vendor ID:                       ARM
+Model:                           1
+Model name:                      Neoverse-N1
+Stepping:                        r3p1
+BogoMIPS:                        243.75
+L1d cache:                       128 KiB
+L1i cache:                       128 KiB
+L2 cache:                        2 MiB
+L3 cache:                        32 MiB
+NUMA node0 CPU(s):               0,1
+Vulnerability Itlb multihit:     Not affected
+Vulnerability L1tf:              Not affected
+Vulnerability Mds:               Not affected
+Vulnerability Meltdown:          Not affected
+Vulnerability Spec store bypass: Mitigation; Speculative Store Bypass disabled via prctl
+Vulnerability Spectre v1:        Mitigation; __user pointer sanitization
+Vulnerability Spectre v2:        Not affected
+Vulnerability Srbds:             Not affected
+Vulnerability Tsx async abort:   Not affected
+Flags:                           fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm lrcpc dcpop asimddp ssbs

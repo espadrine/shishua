@@ -3,28 +3,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-// Use cycle count if possible
-#if !defined(PRNG_USE_NANOSECONDS) && (defined(__x86_64__) || defined(__i386__))
-#  include <x86intrin.h>
-typedef int64_t prng_timer_t;
-static const char *unit = "cpb";
-
-static inline prng_timer_t timer_start(void) {
-  return _rdtsc();
-}
-static inline int64_t timer_elapsed(prng_timer_t start) {
-  int64_t end = _rdtsc();
-  return end - start;
-}
-#else
-// fall back to nanoseconds, e.g. on aarch64 where __builtin_readcyclecounter
-// needs special privileges not usually granted by the Linux kernel.
-// Note that this depends on the CPU frequency.
-// This assumes that clock_gettime is available.
-#  include <time.h>
+#include <time.h>
 
 typedef struct timespec prng_timer_t;
-static const char *unit = "ns/byte";
 
 static inline prng_timer_t timer_start(void) {
    struct timespec ret;
@@ -52,6 +33,33 @@ static inline int64_t timer_elapsed(prng_timer_t start) {
   latency /= LATENCY_ROUNDS;
   return end_ns - start_ns - latency;
 }
+
+// Use cycle count if possible
+#if !defined(PRNG_USE_NANOSECONDS) && (defined(__x86_64__) || defined(__i386__))
+#  include <x86intrin.h>
+static const char *unit = "cpb";
+typedef int64_t prng_cycle_t;
+
+static inline prng_cycle_t cycle_counter_start(void) {
+  return _rdtsc();
+}
+static inline int64_t cycle_counter_elapsed(prng_cycle_t start) {
+  int64_t end = _rdtsc();
+  return end - start;
+}
+#else
+// fall back to nanoseconds, e.g. on aarch64 where __builtin_readcyclecounter
+// needs special privileges not usually granted by the Linux kernel.
+// Note that this depends on the CPU frequency.
+// This assumes that clock_gettime is available.
+static const char *unit = "ns/byte";
+typedef struct timespec prng_cycle_t;
+static inline prng_cycle_t cycle_counter_start(void) {
+  return timer_start();
+}
+static inline int64_t cycle_counter_elapsed(prng_cycle_t start) {
+  return timer_elapsed(start);
+}
 #endif
 
 #define BUFSIZE (1<<17)
@@ -69,18 +77,22 @@ int main(int argc, char **argv) {
   if (a.rval < 0) { return a.rval; }
   prng_state s = prng_init(a.seed);
   uint8_t buf[BUFSIZE] __attribute__ ((aligned (64)));
-  int64_t cycles = 0;
-  prng_timer_t start;
+  int64_t cycles = 0, ns;
+  prng_cycle_t cycles_start;
+  prng_timer_t time_start = timer_start();
   for (int64_t bytes = a.bytes; bytes >= 0; bytes -= sizeof(buf)) {
     int wbytes = bytes < sizeof(buf)? bytes: sizeof(buf);
-    start = timer_start();
+    cycles_start = cycle_counter_start();
     prng_gen(&s, buf, sizeof(buf));
-    cycles += timer_elapsed(start);
+    cycles += cycle_counter_elapsed(cycles_start);
     if (!a.quiet) {
       ssize_t w = write(STDOUT_FILENO, buf, wbytes);
     }
   }
-  fprintf(stderr, "%s: %f %s\n", HEADER, ((double)cycles) / a.bytes, unit);
+  ns = timer_elapsed(time_start);
+  fprintf(stderr, "%-20s\t%f %s\t%.2f GB/s\n",
+          HEADER, ((double)cycles) / a.bytes, unit,
+          ((double)a.bytes) / ns);
   return 0;
 }
 

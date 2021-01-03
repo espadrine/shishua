@@ -1,13 +1,13 @@
-Date Fri Jan  1 21:30:12 CET 2021
-shishua.h: 0.049747 cpb
-shishua-half.h: 0.094580 cpb
-chacha8.h: 0.342001 cpb
-xoshiro256plusx8.h: 0.069145 cpb
-xoshiro256plus.h: 0.251135 cpb
-romu.h: 0.229447 cpb
-wyrand.h: 0.343012 cpb
-lehmer128.h: 0.378924 cpb
-rc4.h: 5.704825 cpb
+Date Fri Jan  1 23:10:58 CET 2021
+shishua.h           	0.053560 cpb	35.32 GB/s
+shishua-half.h      	0.103928 cpb	18.22 GB/s
+chacha8.h           	0.372902 cpb	5.08 GB/s
+xoshiro256plusx8.h  	0.068026 cpb	27.82 GB/s
+xoshiro256plus.h    	0.281286 cpb	6.74 GB/s
+romu.h              	0.244563 cpb	7.75 GB/s
+wyrand.h            	0.291679 cpb	6.50 GB/s
+lehmer128.h         	0.328922 cpb	5.76 GB/s
+rc4.h               	5.973862 cpb	0.32 GB/s
 
 Architecture:                    x86_64
 CPU op-mode(s):                  32-bit, 64-bit
@@ -24,7 +24,7 @@ CPU family:                      6
 Model:                           142
 Model name:                      Intel(R) Core(TM) i5-8350U CPU @ 1.70GHz
 Stepping:                        10
-CPU MHz:                         3015.701
+CPU MHz:                         3203.112
 CPU max MHz:                     3600,0000
 CPU min MHz:                     400,0000
 BogoMIPS:                        3799.90
