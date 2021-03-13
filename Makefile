@@ -156,7 +156,7 @@ test/benchmark-perf: $(PRNGS)
 # Installation instructions for Scaleway CLI (for ARM servers without NEON)
 # available here: https://github.com/scaleway/scaleway-cli#linux
 /usr/local/bin/scw:
-	sudo curl -o /usr/local/bin/scw -L "https://github.com/scaleway/scaleway-cli/releases/download/v2.2.3/scw-2.2.3-linux-x86_64"
+	sudo curl -o /usr/local/bin/scw -L "https://github.com/scaleway/scaleway-cli/releases/download/v2.3.0/scw-2.3.0-linux-x86_64"
 	sudo chmod +x /usr/local/bin/scw
 	scw init
 
