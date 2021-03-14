@@ -15,15 +15,15 @@ Implementations:
 ## Comparison
 
 <table>
-  <tr><th>Name   <th>Performance <th>Quality <th>Seed correlation
-  <tr><td>SHISHUA       <td>0.06 <td>>32 TiB <td> >32 TiB
-  <tr><td>xoshiro256+x8 <td>0.07 <td>  1 KiB <td>   0 KiB
-  <tr><td>RomuTrio      <td>0.31 <td>>32 TiB <td>   1 KiB
-  <tr><td>xoshiro256+   <td>0.34 <td>512 MiB <td>   1 KiB
-  <tr><td>wyrand        <td>0.41 <td>>32 TiB <td>  32 KiB
-  <tr><td>Lehmer128     <td>0.44 <td>>32 TiB <td>   1 KiB
-  <tr><td>ChaCha8       <td>0.46 <td>>32 TiB?<td> >32 TiB?
-  <tr><td>RC4           <td>8.06 <td>  1 TiB <td>   1 KiB
+  <tr><th>Name <th><a href='./test/benchmark-perf-intel'>Intel Performance</a> <th><a href='./test/benchmark-perf-arm'>ARM Performance</a> <th>Quality <th>Seed correlation
+  <tr><td>SHISHUA       <td>52.93 GB/s <td> 8.78 GB/s <td> >32 TiB  <td> >32 TiB
+  <tr><td>xoshiro256+x8 <td>40.18 GB/s <td> 3.69 GB/s <td>   1 KiB  <td>   0 KiB
+  <tr><td>RomuTrio      <td> 8.62 GB/s <td> 4.76 GB/s <td> >32 TiB  <td>   1 KiB
+  <tr><td>xoshiro256+   <td> 7.88 GB/s <td> 4.31 GB/s <td> 512 MiB  <td>   1 KiB
+  <tr><td>wyrand        <td> 7.00 GB/s <td> 2.53 GB/s <td> >32 TiB  <td>  32 KiB
+  <tr><td>Lehmer128     <td> 6.14 GB/s <td> 1.83 GB/s <td> >32 TiB  <td>   1 KiB
+  <tr><td>ChaCha8       <td> 6.28 GB/s <td> 1.72 GB/s <td> >32 TiB? <td> >32 TiB?
+  <tr><td>RC4           <td> 0.35 GB/s <td> 0.15 GB/s <td>   1 TiB  <td>   1 KiB
 </table>
 
 1. **Performance**: in number of CPU cycles spent per byte generated,
