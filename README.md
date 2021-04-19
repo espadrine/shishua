@@ -11,6 +11,7 @@ Implementations:
 
 - [C](./shishua.h)
 - [Rust](https://github.com/dbartussek/shishua_rs/)
+- [Node.js](https://github.com/espadrine/shishua-nodejs) (on [npm](https://www.npmjs.com/package/shishua))
 
 ## Comparison
 
