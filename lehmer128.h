@@ -39,13 +39,11 @@ static inline void prng_gen(prng_state *s, uint8_t buf[], size_t size) {
   }
 }
 
-prng_state prng_init(SEEDTYPE seed[4]) {
-  prng_state s;
-  s.state = seed[0] ^ seed[2];
-  s.state <<= 64;
-  s.state ^= seed[1] ^ seed[3];
-  if (s.state == 0) { s.state = 1; }
-  return s;
+void prng_init(prng_state *s, SEEDTYPE seed[4]) {
+  s->state = seed[0] ^ seed[2];
+  s->state <<= 64;
+  s->state ^= seed[1] ^ seed[3];
+  if (s->state == 0) { s->state = 1; }
 }
 #else
 
@@ -85,12 +83,10 @@ static inline void prng_gen(prng_state *s, uint8_t buf[], size_t size) {
   }
 }
 
-prng_state prng_init(SEEDTYPE seed[4]) {
-  prng_state s;
-  s.state[1] = seed[0] ^ seed[2];
-  s.state[0] = seed[1] ^ seed[3];
-  if (s.state[0] == 0 && s.state[1] == 0) { s.state[0] = 1; }
-  return s;
+void prng_init(prng_state *s, SEEDTYPE seed[4]) {
+  s->state[1] = seed[0] ^ seed[2];
+  s->state[0] = seed[1] ^ seed[3];
+  if (s->state[0] == 0 && s->state[1] == 0) { s->state[0] = 1; }
 }
 #endif // __SIZEOF_INT128__
 #endif

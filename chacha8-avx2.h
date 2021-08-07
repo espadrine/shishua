@@ -226,31 +226,27 @@ static inline void prng_gen(prng_state *s, uint8_t out[], size_t bytes) {
 
 static const char sigma[16] = "expand 32-byte k";
 
-prng_state prng_init(SEEDTYPE seed[4]) {
-  prng_state s;
-
+void prng_init(prng_state *s, SEEDTYPE seed[4]) {
   // Constant.
-  s.state[ 0] = U8TO32_LITTLE(sigma + 0);
-  s.state[ 1] = U8TO32_LITTLE(sigma + 4);
-  s.state[ 2] = U8TO32_LITTLE(sigma + 8);
-  s.state[ 3] = U8TO32_LITTLE(sigma + 12);
+  s->state[ 0] = U8TO32_LITTLE(sigma + 0);
+  s->state[ 1] = U8TO32_LITTLE(sigma + 4);
+  s->state[ 2] = U8TO32_LITTLE(sigma + 8);
+  s->state[ 3] = U8TO32_LITTLE(sigma + 12);
 
   // Key. I ignore the little-endian details here as they don't affect speed.
-  s.state[ 4] = seed[0] & 0xffffffff;
-  s.state[ 5] = seed[0] >> 32;
-  s.state[ 6] = seed[1] & 0xffffffff;
-  s.state[ 7] = seed[1] >> 32;
-  s.state[ 8] = seed[2] & 0xffffffff;
-  s.state[ 9] = seed[2] >> 32;
-  s.state[10] = seed[3] & 0xffffffff;
-  s.state[11] = seed[3] >> 32;
+  s->state[ 4] = seed[0] & 0xffffffff;
+  s->state[ 5] = seed[0] >> 32;
+  s->state[ 6] = seed[1] & 0xffffffff;
+  s->state[ 7] = seed[1] >> 32;
+  s->state[ 8] = seed[2] & 0xffffffff;
+  s->state[ 9] = seed[2] >> 32;
+  s->state[10] = seed[3] & 0xffffffff;
+  s->state[11] = seed[3] >> 32;
 
   // IV. We don't put an IV. We are not doing crypto here.
-  s.state[12] = 0;
-  s.state[13] = 0;
-  s.state[14] = 0;
-  s.state[15] = 0;
-
-  return s;
+  s->state[12] = 0;
+  s->state[13] = 0;
+  s->state[14] = 0;
+  s->state[15] = 0;
 }
 #endif

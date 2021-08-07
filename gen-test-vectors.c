@@ -48,7 +48,8 @@ int main() {
   // Digits of pi in big endian
   uint64_t seed_pi[4] = { 0x243f6a8885a308d3, 0x13198a2e03707344,
                           0xa409382229f31d00, 0x82efa98ec4e6c894 };
-  prng_state state = prng_init(seed_zero);
+  prng_state state;
+  prng_init(&state, seed_zero);
   FILE *f = fopen("test-vectors.h", "wb");
   if (!f) return 1;
 
@@ -65,7 +66,7 @@ int main() {
 
   prng_gen_half(&state_half, buf, 512);
   print_buffer(f, "shishua_half_vector_unseeded", buf, sizeof(buf));
-  state = prng_init(seed_pi);
+  prng_init(&state, seed_pi);
   prng_gen(&state, buf, 512);
   print_buffer(f, "shishua_vector_seeded", buf, sizeof(buf));
 

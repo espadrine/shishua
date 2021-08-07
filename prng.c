@@ -75,7 +75,8 @@ args_t parseArgs(int argc, char **argv);
 int main(int argc, char **argv) {
   args_t a = parseArgs(argc, argv);
   if (a.rval < 0) { return a.rval; }
-  prng_state s = prng_init(a.seed);
+  prng_state s;
+  prng_init(&s, a.seed);
   uint8_t buf[BUFSIZE] __attribute__ ((aligned (64)));
   int64_t cycles = 0, ns;
   prng_cycle_t cycles_start;

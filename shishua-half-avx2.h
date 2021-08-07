@@ -76,23 +76,21 @@ static uint64_t phi[8] = {
   0x2767F0B153D27B7F, 0x0347045B5BF1827F, 0x01886F0928403002, 0xC1D64BA40F335E36,
 };
 
-prng_state prng_init(SEEDTYPE seed[4]) {
-  prng_state s;
-  memset(&s, 0, sizeof(prng_state));
+void prng_init(prng_state *s, SEEDTYPE seed[4]) {
+  memset(s, 0, sizeof(prng_state));
 # define STEPS 5
 # define ROUNDS 4
   uint8_t buf[32 * STEPS];  // 4 64-bit numbers per 256-bit SIMD.
   // Diffuse first two seed elements in s0, then the last two. Same for s1.
   // We must keep half of the state unchanged so users cannot set a bad state.
-  s.state[0] = _mm256_set_epi64x(phi[3], phi[2] ^ seed[1], phi[1], phi[0] ^ seed[0]);
-  s.state[1] = _mm256_set_epi64x(phi[7], phi[6] ^ seed[3], phi[5], phi[4] ^ seed[2]);
+  s->state[0] = _mm256_set_epi64x(phi[3], phi[2] ^ seed[1], phi[1], phi[0] ^ seed[0]);
+  s->state[1] = _mm256_set_epi64x(phi[7], phi[6] ^ seed[3], phi[5], phi[4] ^ seed[2]);
   for (size_t i = 0; i < ROUNDS; i++) {
-    prng_gen(&s, buf, 32 * STEPS);
-    s.state[0] = s.state[1];
-    s.state[1] = s.output;
+    prng_gen(s, buf, 32 * STEPS);
+    s->state[0] = s->state[1];
+    s->state[1] = s->output;
   }
 # undef STEPS
 # undef ROUNDS
-  return s;
 }
 #endif

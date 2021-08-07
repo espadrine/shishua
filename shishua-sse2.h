@@ -175,12 +175,11 @@ static uint64_t phi[16] = {
   0x626E33B8D04B4331, 0xBBF73C790D94F79D, 0x471C4AB3ED3D82A5, 0xFEC507705E4AE6E5,
 };
 
-prng_state prng_init(SEEDTYPE seed[4]) {
+void prng_init(prng_state *s, SEEDTYPE seed[4]) {
   // Note: output is uninitialized at first, but since we pass NULL, its value
   // is initially ignored.
-  prng_state s;
-  s.counter[0] = _mm_setzero_si128();
-  s.counter[1] = _mm_setzero_si128();
+  s->counter[0] = _mm_setzero_si128();
+  s->counter[1] = _mm_setzero_si128();
 # define ROUNDS 13
 # define STEPS 1
   // Diffuse first two seed elements in s0, then the last two. Same for s1.
@@ -189,25 +188,24 @@ prng_state prng_init(SEEDTYPE seed[4]) {
   __m128i seed_1 = SHISHUA_CVTSI64_SI128(seed[1]);
   __m128i seed_2 = SHISHUA_CVTSI64_SI128(seed[2]);
   __m128i seed_3 = SHISHUA_CVTSI64_SI128(seed[3]);
-  s.state[0] = _mm_xor_si128(seed_0, _mm_loadu_si128((__m128i *)&phi[ 0]));
-  s.state[1] = _mm_xor_si128(seed_1, _mm_loadu_si128((__m128i *)&phi[ 2]));
-  s.state[2] = _mm_xor_si128(seed_2, _mm_loadu_si128((__m128i *)&phi[ 4]));
-  s.state[3] = _mm_xor_si128(seed_3, _mm_loadu_si128((__m128i *)&phi[ 6]));
-  s.state[4] = _mm_xor_si128(seed_2, _mm_loadu_si128((__m128i *)&phi[ 8]));
-  s.state[5] = _mm_xor_si128(seed_3, _mm_loadu_si128((__m128i *)&phi[10]));
-  s.state[6] = _mm_xor_si128(seed_0, _mm_loadu_si128((__m128i *)&phi[12]));
-  s.state[7] = _mm_xor_si128(seed_1, _mm_loadu_si128((__m128i *)&phi[14]));
+  s->state[0] = _mm_xor_si128(seed_0, _mm_loadu_si128((__m128i *)&phi[ 0]));
+  s->state[1] = _mm_xor_si128(seed_1, _mm_loadu_si128((__m128i *)&phi[ 2]));
+  s->state[2] = _mm_xor_si128(seed_2, _mm_loadu_si128((__m128i *)&phi[ 4]));
+  s->state[3] = _mm_xor_si128(seed_3, _mm_loadu_si128((__m128i *)&phi[ 6]));
+  s->state[4] = _mm_xor_si128(seed_2, _mm_loadu_si128((__m128i *)&phi[ 8]));
+  s->state[5] = _mm_xor_si128(seed_3, _mm_loadu_si128((__m128i *)&phi[10]));
+  s->state[6] = _mm_xor_si128(seed_0, _mm_loadu_si128((__m128i *)&phi[12]));
+  s->state[7] = _mm_xor_si128(seed_1, _mm_loadu_si128((__m128i *)&phi[14]));
 
   for (int i = 0; i < ROUNDS; i++) {
-    prng_gen(&s, NULL, 128 * STEPS);
-    s.state[0] = s.output[6];  s.state[1] = s.output[7];
-    s.state[2] = s.output[4];  s.state[3] = s.output[5];
-    s.state[4] = s.output[2];  s.state[5] = s.output[3];
-    s.state[6] = s.output[0];  s.state[7] = s.output[1];
+    prng_gen(s, NULL, 128 * STEPS);
+    s->state[0] = s->output[6];  s->state[1] = s->output[7];
+    s->state[2] = s->output[4];  s->state[3] = s->output[5];
+    s->state[4] = s->output[2];  s->state[5] = s->output[3];
+    s->state[6] = s->output[0];  s->state[7] = s->output[1];
   }
 # undef STEPS
 # undef ROUNDS
-  return s;
 }
 #undef SHISHUA_CVTSI64_SI128
 #undef SHISHUA_ALIGNR_EPI8

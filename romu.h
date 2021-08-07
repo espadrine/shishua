@@ -42,10 +42,8 @@ static inline void prng_gen(prng_state *s, uint8_t buf[], size_t size) {
   }
 }
 
-prng_state prng_init(SEEDTYPE seed[4]) {
-  prng_state s;
-  for (size_t i = 0; i < 3; i++) { s.state[i] = seed[i]; }
-  if (s.state[2] == 0) { s.state[2] = 1; }
-  return s;
+void prng_init(prng_state *s, SEEDTYPE seed[4]) {
+  for (size_t i = 0; i < 3; i++) { s->state[i] = seed[i]; }
+  if (s->state[2] == 0) { s->state[2] = 1; }
 }
 #endif

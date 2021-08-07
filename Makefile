@@ -8,7 +8,7 @@ SHISHUAS :=  shishua shishua-half \
 PRNGS := shishua shishua-half chacha8 xoshiro256plusx8 xoshiro256plus romu wyrand lehmer128 rc4
 # Should match header names (aside from -scalar and -ssse3)
 IMPLS := $(SHISHUAS) chacha8 chacha8-avx2 chacha8-neon xoshiro256plusx8 xoshiro256plus romu wyrand lehmer128 rc4
-TESTS := $(addprefix test-,$(TARGETS))
+TESTS := $(addprefix test/vectors-,$(TARGETS))
 
 # We need second expansions.
 .SECONDEXPANSION:
@@ -23,7 +23,7 @@ fix_target = $(subst -scalar,,$(subst -ssse3,-sse2,$(1)))
 $(IMPLS): HEADER = $(call fix_target,$@).h
 # HEADERS ensures modifications on -neon.h etc. cause recompiles.
 $(PRNGS): HEADERS = $(call fix_target,$@)*.h
-$(TESTS): SUFFIX = $(patsubst test%,%.h,$(call fix_target,$@))
+$(TESTS): SUFFIX = $(patsubst test/vectors%,%.h,$(call fix_target,$@))
 
 # Force SSE2, disable SSE3
 %-sse2: CFLAGS += -msse2 -mno-sse3 -mno-ssse3
@@ -50,10 +50,6 @@ $(TARGETS): %: shishua-% shishua-half-%
 
 $(IMPLS): $$(HEADER) $$(HEADERS) prng.c
 	$(CC) $(CFLAGS) -DHEADER='"$(HEADER)"' prng.c -o $@
-
-$(TESTS): test-vectors.c test-vectors.h shishua$$(SUFFIX) shishua-half$$(SUFFIX)
-	$(CC) $(CFLAGS) -DHEADER='"shishua$(SUFFIX)"' -DHEADER_HALF='"shishua-half$(SUFFIX)"' $< -o $@
-	./$@
 
 intertwine: intertwine.c
 	$(CC) $(CFLAGS) -o $@ $<
@@ -86,7 +82,19 @@ intertwine: intertwine.c
 	sudo mv testu01 /usr/local/bin
 	rm -rf TestU01*
 
-test: test/perf-$(FINGERPRINT) test/PractRand-$(FINGERPRINT) test/BigCrush-$(FINGERPRINT)
+test: test/perf-$(FINGERPRINT) test/vectors test/PractRand-$(FINGERPRINT) test/BigCrush-$(FINGERPRINT)
+
+test/vectors:
+	@mkdir -p test
+	make test/vectors-scalar
+	make test/vectors-sse2
+	make test/vectors-ssse3
+	make test/vectors-avx2
+	#make test/vectors-neon
+
+$(TESTS): test-vectors.c test-vectors.h shishua$$(SUFFIX) shishua-half$$(SUFFIX)
+	$(CC) $(CFLAGS) -DHEADER='"shishua$(SUFFIX)"' -DHEADER_HALF='"shishua-half$(SUFFIX)"' $< -o $@
+	./$@ >> test/vectors
 
 test/PractRand-$(FINGERPRINT): /usr/local/bin/RNG_test shishua
 	@mkdir -p test

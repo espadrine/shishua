@@ -33,7 +33,8 @@ static size_t find_mismatch(const uint8_t *a, const uint8_t *b, size_t size) {
 
 int main(void) {
   uint8_t buf[sizeof(shishua_vector_unseeded)] = {0};
-  prng_state state = prng_init(seed_zero);
+  prng_state state;
+  prng_init(&state, seed_zero);
   memset(buf, 0, sizeof(buf));
   prng_gen(&state, buf, sizeof(buf));
 
@@ -45,7 +46,8 @@ int main(void) {
     printf("expected: %#02x, got %#02x\n", shishua_vector_unseeded[offset], buf[offset]);
     return 1;
   }
-  prng_state_half state_half = prng_init_half(seed_zero);
+  prng_state_half state_half;
+  prng_init_half(&state_half, seed_zero);
   memset(buf, 0, sizeof(buf));
   prng_gen_half(&state_half, buf, sizeof(buf));
 
@@ -58,7 +60,7 @@ int main(void) {
     printf("expected: %#02x, got %#02x\n", shishua_half_vector_unseeded[offset], buf[offset]);
     return 1;
   }
-  state = prng_init(seed_pi);
+  prng_init(&state, seed_pi);
   memset(buf, 0, sizeof(buf));
   prng_gen(&state, buf, sizeof(buf));
   offset = find_mismatch(shishua_vector_seeded, buf, sizeof(buf));
@@ -69,7 +71,7 @@ int main(void) {
     printf("expected: %#02x, got %#02x\n", shishua_vector_seeded[offset], buf[offset]);
     return 1;
   }
-  state_half = prng_init_half(seed_pi);
+  prng_init_half(&state_half, seed_pi);
   memset(buf, 0, sizeof(buf));
   prng_gen_half(&state_half, buf, sizeof(buf));
 
