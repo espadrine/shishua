@@ -39,7 +39,7 @@ static inline void prng_gen(prng_state *s, uint8_t buf[], size_t size) {
   }
 }
 
-void prng_init(prng_state *s, SEEDTYPE seed[4]) {
+void prng_init(prng_state *s, uint64_t seed[4]) {
   s->state = seed[0] ^ seed[2];
   s->state <<= 64;
   s->state ^= seed[1] ^ seed[3];
@@ -83,7 +83,7 @@ static inline void prng_gen(prng_state *s, uint8_t buf[], size_t size) {
   }
 }
 
-void prng_init(prng_state *s, SEEDTYPE seed[4]) {
+void prng_init(prng_state *s, uint64_t seed[4]) {
   s->state[1] = seed[0] ^ seed[2];
   s->state[0] = seed[1] ^ seed[3];
   if (s->state[0] == 0 && s->state[1] == 0) { s->state[0] = 1; }

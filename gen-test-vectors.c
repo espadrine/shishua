@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <inttypes.h>
 
-#define SEEDTYPE uint64_t
-
 #ifndef HEADER
 #  define HEADER "shishua.h"
 #endif

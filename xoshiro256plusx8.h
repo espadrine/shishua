@@ -59,7 +59,7 @@ static inline void prng_gen(prng_state *s, uint8_t buf[], size_t size) {
   }
 }
 
-void prng_init(prng_state *s, SEEDTYPE seed[4]) {
+void prng_init(prng_state *s, uint64_t seed[4]) {
   for (size_t i = 0; i < XOSHIRO256_UNROLL; i++) {
     for (size_t j = 0; j < 4; j++) { s->state[j][i] = seed[j] ^ (1 << i); }
   }

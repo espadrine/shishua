@@ -63,13 +63,12 @@ static inline int64_t cycle_counter_elapsed(prng_cycle_t start) {
 #endif
 
 #define BUFSIZE (1<<17)
-#define SEEDTYPE uint64_t
 #ifndef HEADER
 #  define HEADER "./prng.h"
 #endif
 #include HEADER
 
-typedef struct args { int64_t bytes; SEEDTYPE seed[4]; int rval; int quiet; } args_t;
+typedef struct args { int64_t bytes; uint64_t seed[4]; int rval; int quiet; } args_t;
 args_t parseArgs(int argc, char **argv);
 
 int main(int argc, char **argv) {

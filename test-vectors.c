@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#define SEEDTYPE uint64_t
 
 #ifndef HEADER
 #  define HEADER "shishua.h"

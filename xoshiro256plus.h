@@ -70,7 +70,7 @@ static inline void prng_gen(prng_state *s, uint8_t buf[], size_t size) {
 // Since SHISHUA can handle any seed, including the zero seed and the seed that
 // minimizes the amounts of bits set in the state after initialization, it seems
 // fair. Ignoring bad splitmix64 gammas would hide severe seeding faults.
-void prng_init(prng_state *s, SEEDTYPE seed[4]) {
+void prng_init(prng_state *s, uint64_t seed[4]) {
   for (size_t j = 0; j < 4; j++) { s->state[j] = seed[j]; }
   if (s->state[0] == 0) { s->state[0] = 1; }
 }

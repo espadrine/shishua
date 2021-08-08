@@ -27,7 +27,7 @@ static inline void prng_gen(prng_state *s, uint8_t buf[], size_t size) {
   }
 }
 
-void prng_init(prng_state *s, SEEDTYPE seed[4]) {
+void prng_init(prng_state *s, uint64_t seed[4]) {
   uint8_t *shuffle = s->shuffle, *key = (uint8_t *)seed;
   for (size_t i = 0; i < 256; i++) { shuffle[i] = i; }
   for (size_t i = 0, j = 0; i < 256; i++, j = (j + shuffle[i] + key[i % 32]) % 256) {

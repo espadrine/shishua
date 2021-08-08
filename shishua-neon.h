@@ -144,7 +144,7 @@ static uint64_t phi[16] = {
   0x626E33B8D04B4331, 0xBBF73C790D94F79D, 0x471C4AB3ED3D82A5, 0xFEC507705E4AE6E5,
 };
 
-void prng_init(prng_state *s, SEEDTYPE seed[4]) {
+void prng_init(prng_state *s, uint64_t seed[4]) {
   s->counter[0] = vdupq_n_u64(0);
   s->counter[1] = vdupq_n_u64(0);
 # define ROUNDS 13

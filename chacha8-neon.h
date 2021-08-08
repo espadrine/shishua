@@ -190,7 +190,7 @@ static inline void prng_gen(prng_state *s, uint8_t out[], size_t bytes) {
 
 static const char sigma[16] = "expand 32-byte k";
 
-void prng_init(prng_state *s, SEEDTYPE seed[4]) {
+void prng_init(prng_state *s, uint64_t seed[4]) {
   // Constant.
   s->state[ 0] = U8TO32_LITTLE(sigma + 0);
   s->state[ 1] = U8TO32_LITTLE(sigma + 4);
