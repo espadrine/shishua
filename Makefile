@@ -74,13 +74,13 @@ intertwine: intertwine.c
 /usr/local/bin/testu01: testu01.c
 	curl -sO 'http://simul.iro.umontreal.ca/testu01/TestU01.zip'
 	unzip TestU01.zip
-	mv TestU01-*/ TestU01
-	cd TestU01; \
-	  ./configure --prefix="$$(dirname $$(pwd))"; \
-	  make; make install
+	mv TestU01-*/ testu01
+	cd testu01; \
+	  ./configure --prefix=/usr/local; \
+	  make; sudo make install
+	rm -rf TestU01* testu01
 	gcc -std=c99 -Wall -O3 -o testu01 testu01.c -Iinclude -Llib -ltestu01 -lprobdist -lmylib -lm
-	sudo mv testu01 /usr/local/bin
-	rm -rf TestU01*
+	sudo mv testu01 /usr/local/bin/
 
 test: test/perf-$(FINGERPRINT) test/vectors test/PractRand-$(FINGERPRINT) test/BigCrush-$(FINGERPRINT)
 
