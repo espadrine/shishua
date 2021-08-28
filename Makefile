@@ -5,9 +5,9 @@ TARGETS := scalar sse2 ssse3 avx2 neon
 SHISHUAS :=  shishua shishua-half \
              $(addprefix shishua-,$(TARGETS)) \
              $(addprefix shishua-half-,$(TARGETS))
-PRNGS := shishua shishua-half chacha8 xoshiro256plusx8 xoshiro256plus romu wyrand lehmer128 rc4
+PRNGS := shishua shishua-half chacha8 xoshiro256plusx8 xoshiro256plus romu wyrand lehmer128 rc4 fabira
 # Should match header names (aside from -scalar and -ssse3)
-IMPLS := $(SHISHUAS) chacha8 chacha8-avx2 chacha8-neon xoshiro256plusx8 xoshiro256plus romu wyrand lehmer128 rc4
+IMPLS := $(SHISHUAS) chacha8 chacha8-avx2 chacha8-neon xoshiro256plusx8 xoshiro256plus romu wyrand lehmer128 rc4 fabira
 TESTS := $(addprefix test/vectors-,$(TARGETS))
 
 # We need second expansions.
