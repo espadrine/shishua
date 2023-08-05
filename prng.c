@@ -70,6 +70,7 @@ static inline int64_t cycle_counter_elapsed(prng_cycle_t start) {
 
 typedef struct args { int64_t bytes; uint64_t seed[4]; int rval; int quiet; } args_t;
 args_t parseArgs(int argc, char **argv);
+void parseSeed(char *seed, args_t *args);
 
 int main(int argc, char **argv) {
   args_t a = parseArgs(argc, argv);
@@ -110,13 +111,30 @@ args_t parseArgs(int argc, char **argv) {
       fprintf(stderr, "  --quiet: don't dump output to stdout\n");
       a.rval = -1;
     } else if (strcmp(argv[i], "-b") == 0 || strcmp(argv[i], "--bytes") == 0) {
-      a.bytes = strtoll(argv[++i], NULL, 0);
+      a.bytes = strtoll(argv[++i], NULL, 10);
       if (a.bytes <= 0) a.rval = -1;
     } else if (strcmp(argv[i], "-q") == 0 || strcmp(argv[i], "--quiet") == 0) {
       a.quiet = 1;
     } else if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--seed") == 0) {
-      a.seed[0] = strtoull(argv[++i], NULL, 0);
+      parseSeed(argv[++i], &a);
     }
   }
   return a;
+}
+
+void parseSeed(char *seed, args_t *args) {
+  size_t consumed = 0;
+  size_t len = strlen(seed);
+  for (int i = 0; i < 4; i++) {
+    // 16 hex chars (64 bits / 4 bit/hex digit) + 1 \0.
+    char hex64[17] = "0000000000000000";
+    //  consumed hexLen
+    // |xxxxxxxx|xxxx--|   x = len
+    size_t hexLen = len - consumed;
+    if (hexLen > 16) { hexLen = 16; }
+    strncpy(hex64, seed + i*16, hexLen);
+    consumed += hexLen;
+    hex64[16] = '\0';
+    args->seed[i] = strtoull(hex64, NULL, 16);
+  }
 }
